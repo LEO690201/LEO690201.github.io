@@ -3,117 +3,652 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>时光计时器</title>
+    <title>我们的时光 - 恋爱纪念册</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 统一的 Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B8B',
+                        secondary: '#5D93E1',
+                        accent: '#FFD166',
+                        light: '#F9F7F7',
+                        dark: '#2B2D42'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+                        'hover': '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .glass {
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .gradient-text {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+                background-image: linear-gradient(135deg, #FF6B8B, #5D93E1);
+            }
+        }
+    </style>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        .timer-container {
-            background: white;
-            padding: 30px;
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
         }
-        h1 {
-            color: #ff4500;
-            text-align: center;
+        ::-webkit-scrollbar-thumb {
+            background: #FF6B8B;
+            border-radius: 10px;
         }
-        .time-display {
-            font-size: 24px;
-            text-align: center;
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff4768;
         }
-        .controls {
+
+        /* 页面过渡动画 */
+        .page-transition {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .page-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .page-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 心跳动画 */
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1); }
+        }
+        .heartbeat {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        /* 卡片悬停效果 */
+        .memory-card {
+            transition: all 0.3s ease;
+        }
+        .memory-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* 日历网格 */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
+            align-items: center;
             justify-content: center;
-            margin: 20px 0;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
+            position: relative;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.2s ease;
         }
-        button:hover {
-            background-color: #0056b3;
+        .calendar-day:hover {
+            background-color: rgba(255, 107, 139, 0.1);
         }
-        .calendar-section {
-            margin: 20px 0;
-            text-align: center;
+        .calendar-day.has-event {
+            background-color: rgba(255, 107, 139, 0.2);
         }
-        input[type="date"] {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-        .reset-btn {
-            background-color: #dc3545;
-        }
-        .reset-btn:hover {
-            background-color: #bb2d3b;
+        .calendar-day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: #FF6B8B;
         }
     </style>
 </head>
-<body>
-    <h1>时光计时器</h1>
-
-    <!-- 相逢时间计时器 -->
-    <div class="timer-container">
-        <h2>相逢已过</h2>
-        <div class="calendar-section">
-            <p>选择相逢日期：</p>
-            <input type="date" id="meetDate">
-            <button onclick="setMeetTime()">确认相逢时间</button>
+<body class="bg-light min-h-screen font-sans text-dark">
+    <!-- 顶部背景图 -->
+    <div class="relative w-full h-64 md:h-80 overflow-hidden">
+        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/78123d4f126746319979c3ed25b3ffa8~tplv-a9rns2rl98-image.image?rcl=2025122119594470F237414100ECEC9155&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768910420&x-signature=8bOaXjrcuCox3DDIAK7hXJuD02Y%3D" 
+             alt="情侣背景" 
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-light"></div>
+        
+        <!-- 情侣姓名显示 -->
+        <div id="coupleNames" class="absolute bottom-4 left-0 right-0 text-center text-white text-shadow px-4">
+            <h1 class="text-3xl md:text-4xl font-bold mb-1">我们的时光</h1>
+            <p id="namesDisplay" class="text-lg md:text-xl opacity-90">请设置我们的姓名</p>
         </div>
-        <div class="time-display" id="meetTimeDisplay">请选择相逢日期</div>
     </div>
 
-    <!-- 恋爱时间计时器 -->
-    <div class="timer-container">
-        <h2>恋爱已过</h2>
-        <div class="controls">
-            <button onclick="startLoveTime()">开始记录恋爱时间</button>
-            <button class="reset-btn" onclick="resetLoveTime()">重置恋爱时间</button>
+    <!-- 主容器 -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- 导航栏 -->
+        <nav class="bg-white rounded-xl shadow-soft mb-8 p-4 flex flex-wrap justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-heart text-primary text-2xl heartbeat"></i>
+                <span class="text-xl font-bold gradient-text">我们的时光</span>
+            </div>
+            
+            <div class="flex space-x-1 md:space-x-2 text-sm md:text-base">
+                <button onclick="showPage('timers')" class="nav-btn px-3 py-2 rounded-lg hover:bg-primary hover:text-white transition-colors flex items-center">
+                    <i class="fa fa-clock-o mr-1"></i> 计时器
+                </button>
+                <button onclick="showPage('calendar')" class="nav-btn px-3 py-2 rounded-lg hover:bg-primary hover:text-white transition-colors flex items-center">
+                    <i class="fa fa-calendar mr-1"></i> 日历
+                </button>
+                <button onclick="showPage('memories')" class="nav-btn px-3 py-2 rounded-lg hover:bg-primary hover:text-white transition-colors flex items-center">
+                    <i class="fa fa-book mr-1"></i> 回忆
+                </button>
+                <button onclick="showPage('quotes')" class="nav-btn px-3 py-2 rounded-lg hover:bg-primary hover:text-white transition-colors flex items-center">
+                    <i class="fa fa-heart mr-1"></i> 情话
+                </button>
+                <button onclick="showSettings()" class="nav-btn px-3 py-2 rounded-lg hover:bg-primary hover:text-white transition-colors flex items-center">
+                    <i class="fa fa-cog mr-1"></i> 设置
+                </button>
+            </div>
+        </nav>
+
+        <!-- 页面内容区域 -->
+        <div id="pageContent">
+            <!-- 计时器页面 -->
+            <div id="timersPage" class="page-content page-transition">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 相逢时间计时器 -->
+                    <div class="bg-white rounded-xl shadow-soft p-6 animate-fade-in">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                                <i class="fa fa-handshake-o text-primary"></i>
+                            </div>
+                            <h2 class="text-xl font-bold">相逢已过</h2>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="meetDate" class="block text-sm font-medium text-gray-700 mb-2">选择相逢日期：</label>
+                            <div class="flex space-x-2">
+                                <input type="date" id="meetDate" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                                <button onclick="setMeetTime()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                                    确认
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="time-display bg-gradient-to-r from-primary/5 to-secondary/5 p-6 rounded-xl text-center">
+                            <div id="meetTimeDisplay" class="text-2xl md:text-3xl font-bold">请选择相逢日期</div>
+                            <div class="text-sm text-gray-500 mt-2">我们初次相遇的那一天</div>
+                        </div>
+                    </div>
+
+                    <!-- 恋爱时间计时器 -->
+                    <div class="bg-white rounded-xl shadow-soft p-6 animate-fade-in" style="animation-delay: 0.2s;">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center mr-3">
+                                <i class="fa fa-heart text-secondary"></i>
+                            </div>
+                            <h2 class="text-xl font-bold">恋爱已过</h2>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="loveDate" class="block text-sm font-medium text-gray-700 mb-2">选择恋爱日期：</label>
+                            <div class="flex space-x-2">
+                                <input type="date" id="loveDate" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary">
+                                <button onclick="setLoveTime()" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors">
+                                    确认
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="time-display bg-gradient-to-r from-secondary/5 to-primary/5 p-6 rounded-xl text-center">
+                            <div id="loveTimeDisplay" class="text-2xl md:text-3xl font-bold">请选择恋爱日期</div>
+                            <div class="text-sm text-gray-500 mt-2">我们确定关系的那一天</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 倒计时功能 -->
+                <div class="mt-8 bg-white rounded-xl shadow-soft p-6 animate-fade-in" style="animation-delay: 0.4s;">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mr-3">
+                            <i class="fa fa-calendar-check-o text-accent"></i>
+                        </div>
+                        <h2 class="text-xl font-bold">重要日子倒计时</h2>
+                        <button onclick="addCountdown()" class="ml-auto px-4 py-2 bg-accent text-dark rounded-lg hover:bg-accent/90 transition-colors flex items-center">
+                            <i class="fa fa-plus mr-1"></i> 添加
+                        </button>
+                    </div>
+                    
+                    <div id="countdownsList" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- 倒计时项目将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日历页面 -->
+            <div id="calendarPage" class="page-content hidden page-transition">
+                <div class="bg-white rounded-xl shadow-soft p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">我们的日历</h2>
+                        <div class="flex space-x-2">
+                            <button onclick="changeMonth(-1)" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="fa fa-chevron-left"></i>
+                            </button>
+                            <span id="currentMonth" class="px-4 py-1 text-lg font-medium"></span>
+                            <button onclick="changeMonth(1)" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="fa fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 日历头部 -->
+                    <div class="calendar-grid mb-2">
+                        <div class="text-center font-medium text-gray-500 py-2">日</div>
+                        <div class="text-center font-medium text-gray-500 py-2">一</div>
+                        <div class="text-center font-medium text-gray-500 py-2">二</div>
+                        <div class="text-center font-medium text-gray-500 py-2">三</div>
+                        <div class="text-center font-medium text-gray-500 py-2">四</div>
+                        <div class="text-center font-medium text-gray-500 py-2">五</div>
+                        <div class="text-center font-medium text-gray-500 py-2">六</div>
+                    </div>
+                    
+                    <!-- 日历网格 -->
+                    <div id="calendarGrid" class="calendar-grid">
+                        <!-- 日历天数将在这里动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 今日记录 -->
+                <div class="mt-8 bg-white rounded-xl shadow-soft p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                            <i class="fa fa-pencil text-primary"></i>
+                        </div>
+                        <h2 class="text-xl font-bold">今日记录</h2>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="todayMood" class="block text-sm font-medium text-gray-700 mb-2">今日心情：</label>
+                        <div class="flex space-x-2">
+                            <button class="mood-btn px-3 py-2 border rounded-lg hover:bg-gray-100 transition-colors" data-mood="开心">
+                                <i class="fa fa-smile-o text-accent"></i> 开心
+                            </button>
+                            <button class="mood-btn px-3 py-2 border rounded-lg hover:bg-gray-100 transition-colors" data-mood="平静">
+                                <i class="fa fa-meh-o text-secondary"></i> 平静
+                            </button>
+                            <button class="mood-btn px-3 py-2 border rounded-lg hover:bg-gray-100 transition-colors" data-mood="难过">
+                                <i class="fa fa-frown-o text-primary"></i> 难过
+                            </button>
+                            <button class="mood-btn px-3 py-2 border rounded-lg hover:bg-gray-100 transition-colors" data-mood="生气">
+                                <i class="fa fa-angry text-red-500"></i> 生气
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="todayNote" class="block text-sm font-medium text-gray-700 mb-2">今日故事：</label>
+                        <textarea id="todayNote" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="记录今天发生的事情..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="todayImage" class="block text-sm font-medium text-gray-700 mb-2">添加图片：</label>
+                        <input type="file" id="todayImage" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    
+                    <button onclick="saveTodayRecord()" class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                        保存记录
+                    </button>
+                </div>
+            </div>
+
+            <!-- 回忆页面 -->
+            <div id="memoriesPage" class="page-content hidden page-transition">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">我们的回忆</h2>
+                    <div class="flex space-x-2">
+                        <select id="memoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="all">全部回忆</option>
+                            <option value="image">有图片</option>
+                            <option value="text">文字记录</option>
+                        </select>
+                        <button onclick="searchMemories()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                            <i class="fa fa-search mr-1"></i> 搜索
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="memoriesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- 回忆卡片将在这里动态生成 -->
+                </div>
+            </div>
+
+            <!-- 情话页面 -->
+            <div id="quotesPage" class="page-content hidden page-transition">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">美丽的话语</h2>
+                    <button onclick="addQuote()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                        <i class="fa fa-plus mr-1"></i> 添加
+                    </button>
+                </div>
+                
+                <div id="quotesList" class="space-y-4">
+                    <!-- 情话卡片将在这里动态生成 -->
+                </div>
+                
+                <div class="mt-8 bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-xl text-center">
+                    <h3 class="text-xl font-bold mb-4">每日情话推荐</h3>
+                    <div id="dailyQuote" class="text-lg italic">
+                        "最好的爱情，是我崇拜你像个英雄，你宠爱我像个孩子。"
+                    </div>
+                    <button onclick="getRandomQuote()" class="mt-4 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors">
+                        换一句
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="time-display" id="loveTimeDisplay">未开始记录</div>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md animate-slide-up">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">设置</h2>
+                <button onclick="closeSettings()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label for="name1" class="block text-sm font-medium text-gray-700 mb-2">姓名 1：</label>
+                <input type="text" id="name1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="请输入第一个人的姓名">
+            </div>
+            
+            <div class="mb-4">
+                <label for="name2" class="block text-sm font-medium text-gray-700 mb-2">姓名 2：</label>
+                <input type="text" id="name2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="请输入第二个人的姓名">
+            </div>
+            
+            <div class="mb-4">
+                <label for="backgroundImage" class="block text-sm font-medium text-gray-700 mb-2">背景图片：</label>
+                <input type="file" id="backgroundImage" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            
+            <button onclick="saveSettings()" class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                保存设置
+            </button>
+        </div>
+    </div>
+
+    <!-- 添加倒计时弹窗 -->
+    <div id="countdownModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md animate-slide-up">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">添加倒计时</h2>
+                <button onclick="closeCountdownModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label for="countdownName" class="block text-sm font-medium text-gray-700 mb-2">事件名称：</label>
+                <input type="text" id="countdownName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="例如：周年纪念日">
+            </div>
+            
+            <div class="mb-4">
+                <label for="countdownDate" class="block text-sm font-medium text-gray-700 mb-2">日期：</label>
+                <input type="date" id="countdownDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+            </div>
+            
+            <button onclick="saveCountdown()" class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                保存
+            </button>
+        </div>
+    </div>
+
+    <!-- 添加情话弹窗 -->
+    <div id="quoteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md animate-slide-up">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">添加情话</h2>
+                <button onclick="closeQuoteModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label for="quoteText" class="block text-sm font-medium text-gray-700 mb-2">情话内容：</label>
+                <textarea id="quoteText" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="输入你想记录的情话..."></textarea>
+            </div>
+            
+            <div class="mb-4">
+                <label for="quoteAuthor" class="block text-sm font-medium text-gray-700 mb-2">谁说的：</label>
+                <select id="quoteAuthor" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                    <option value="name1">我</option>
+                    <option value="name2">对方</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            
+            <button onclick="saveQuote()" class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                保存
+            </button>
+        </div>
+    </div>
+
+    <!-- 查看事件详情弹窗 -->
+    <div id="eventDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-lg animate-slide-up">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="eventDetailTitle" class="text-xl font-bold">事件详情</h2>
+                <button onclick="closeEventDetailModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="eventDetailContent" class="space-y-4">
+                <!-- 事件详情将在这里动态生成 -->
+            </div>
+        </div>
     </div>
 
     <script>
-        // 初始化：从本地存储加载已保存的时间
+        // 全局变量
         let meetTime = localStorage.getItem('meetTime') ? new Date(localStorage.getItem('meetTime')) : null;
         let loveTime = localStorage.getItem('loveTime') ? new Date(localStorage.getItem('loveTime')) : null;
+        let coupleNames = JSON.parse(localStorage.getItem('coupleNames')) || { name1: '', name2: '' };
+        let memories = JSON.parse(localStorage.getItem('memories')) || [];
+        let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
+        let countdowns = JSON.parse(localStorage.getItem('countdowns')) || [];
+        let currentDate = new Date();
+        let currentViewDate = new Date();
 
-        // 渲染计时器
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载情侣姓名
+            updateNamesDisplay();
+            
+            // 加载背景图片
+            loadBackgroundImage();
+            
+            // 设置日期输入框的默认值
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('meetDate').value = meetTime ? meetTime.toISOString().split('T')[0] : '';
+            document.getElementById('loveDate').value = loveTime ? loveTime.toISOString().split('T')[0] : '';
+            document.getElementById('countdownDate').value = today;
+            
+            // 启动计时器
+            updateTimers();
+            
+            // 初始化日历
+            renderCalendar();
+            
+            // 加载回忆
+            renderMemories();
+            
+            // 加载情话
+            renderQuotes();
+            
+            // 加载倒计时
+            renderCountdowns();
+            
+            // 加载今日记录
+            loadTodayRecord();
+            
+            // 设置默认页面
+            showPage('timers');
+        });
+
+        // 更新情侣姓名显示
+        function updateNamesDisplay() {
+            const namesDisplay = document.getElementById('namesDisplay');
+            if (coupleNames.name1 && coupleNames.name2) {
+                namesDisplay.textContent = `${coupleNames.name1} ❤️ ${coupleNames.name2}`;
+            } else {
+                namesDisplay.textContent = '请设置我们的姓名';
+            }
+        }
+
+        // 加载背景图片
+        function loadBackgroundImage() {
+            const backgroundImage = localStorage.getItem('backgroundImage');
+            if (backgroundImage) {
+                const headerImage = document.querySelector('.relative img');
+                headerImage.src = backgroundImage;
+            }
+        }
+
+        // 页面切换
+        function showPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.add('hidden');
+            });
+            
+            // 显示选中的页面
+            const targetPage = document.getElementById(pageName + 'Page');
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+                
+                // 添加进入动画
+                setTimeout(() => {
+                    targetPage.classList.add('page-enter-active');
+                    targetPage.classList.remove('page-enter');
+                }, 10);
+                
+                targetPage.classList.add('page-enter');
+            }
+            
+            // 更新导航按钮状态
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('hover:bg-primary', 'hover:text-white');
+            });
+        }
+
+        // 显示设置弹窗
+        function showSettings() {
+            document.getElementById('name1').value = coupleNames.name1 || '';
+            document.getElementById('name2').value = coupleNames.name2 || '';
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        // 关闭设置弹窗
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        // 保存设置
+        function saveSettings() {
+            const name1 = document.getElementById('name1').value.trim();
+            const name2 = document.getElementById('name2').value.trim();
+            const backgroundImageInput = document.getElementById('backgroundImage');
+            
+            // 保存姓名
+            if (name1 || name2) {
+                coupleNames.name1 = name1;
+                coupleNames.name2 = name2;
+                localStorage.setItem('coupleNames', JSON.stringify(coupleNames));
+                updateNamesDisplay();
+            }
+            
+            // 保存背景图片
+            if (backgroundImageInput.files.length > 0) {
+                const file = backgroundImageInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    localStorage.setItem('backgroundImage', e.target.result);
+                    loadBackgroundImage();
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            closeSettings();
+        }
+
+        // 更新计时器
         function updateTimers() {
+            const now = new Date();
+            
             // 更新相逢计时器
             if (meetTime) {
-                const now = new Date();
                 const diff = now - meetTime;
                 document.getElementById('meetTimeDisplay').textContent = formatTime(diff);
             }
-
+            
             // 更新恋爱计时器
             if (loveTime) {
-                const now = new Date();
                 const diff = now - loveTime;
                 document.getElementById('loveTimeDisplay').textContent = formatTime(diff);
             }
-
+            
             // 每秒更新一次
-            requestAnimationFrame(updateTimers);
+            requestAnimationFrame(() => {
+                setTimeout(updateTimers, 1000);
+            });
         }
 
         // 格式化时间（毫秒 -> 天时分秒）
@@ -123,33 +658,507 @@
             const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
             const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
             const seconds = totalSeconds % 60;
-            return `${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+            
+            if (days > 0) {
+                return `${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+            } else if (hours > 0) {
+                return `${hours}时 ${minutes}分 ${seconds}秒`;
+            } else if (minutes > 0) {
+                return `${minutes}分 ${seconds}秒`;
+            } else {
+                return `${seconds}秒`;
+            }
         }
 
-        // 设置相逢时间（从日历选择）
+        // 设置相逢时间
         function setMeetTime() {
             const dateInput = document.getElementById('meetDate');
             if (dateInput.value) {
                 meetTime = new Date(dateInput.value);
-                localStorage.setItem('meetTime', meetTime.toISOString()); // 保存到本地存储
+                localStorage.setItem('meetTime', meetTime.toISOString());
             }
         }
 
-        // 开始记录恋爱时间（以当前时间为起点）
-        function startLoveTime() {
-            loveTime = new Date();
-            localStorage.setItem('loveTime', loveTime.toISOString()); // 保存到本地存储
+        // 设置恋爱时间
+        function setLoveTime() {
+            const dateInput = document.getElementById('loveDate');
+            if (dateInput.value) {
+                loveTime = new Date(dateInput.value);
+                localStorage.setItem('loveTime', loveTime.toISOString());
+            }
         }
 
-        // 重置恋爱时间
-        function resetLoveTime() {
-            loveTime = null;
-            localStorage.removeItem('loveTime');
-            document.getElementById('loveTimeDisplay').textContent = '未开始记录';
+        // 渲染日历
+        function renderCalendar() {
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            
+            // 更新当前月份显示
+            document.getElementById('currentMonth').textContent = `${year}年${month + 1}月`;
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            // 获取当月第一天是星期几
+            const firstDay = new Date(year, month, 1).getDay();
+            
+            // 获取当月的天数
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // 添加上个月的占位天数
+            for (let i = 0; i < firstDay; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day text-gray-300';
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // 添加当月的天数
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day rounded-lg border';
+                
+                // 检查是否有事件
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasEvent = memories.some(memory => memory.date === dateStr);
+                
+                if (hasEvent) {
+                    dayElement.classList.add('has-event');
+                }
+                
+                // 高亮今天
+                const today = new Date();
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayElement.classList.add('bg-primary', 'text-white');
+                }
+                
+                dayElement.textContent = day;
+                dayElement.onclick = () => showDateEvents(year, month, day);
+                
+                calendarGrid.appendChild(dayElement);
+            }
         }
 
-        // 页面加载时启动计时器
-        updateTimers();
+        // 切换月份
+        function changeMonth(direction) {
+            currentViewDate.setMonth(currentViewDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        // 显示指定日期的事件
+        function showDateEvents(year, month, day) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const events = memories.filter(memory => memory.date === dateStr);
+            
+            if (events.length === 0) {
+                alert('这一天没有记录');
+                return;
+            }
+            
+            // 显示事件详情弹窗
+            document.getElementById('eventDetailTitle').textContent = `${year}年${month + 1}月${day}日的记录`;
+            
+            const contentDiv = document.getElementById('eventDetailContent');
+            contentDiv.innerHTML = '';
+            
+            events.forEach(event => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'p-4 border rounded-lg';
+                
+                let moodIcon = '';
+                switch(event.mood) {
+                    case '开心': moodIcon = '<i class="fa fa-smile-o text-accent"></i>'; break;
+                    case '平静': moodIcon = '<i class="fa fa-meh-o text-secondary"></i>'; break;
+                    case '难过': moodIcon = '<i class="fa fa-frown-o text-primary"></i>'; break;
+                    case '生气': moodIcon = '<i class="fa fa-angry text-red-500"></i>'; break;
+                }
+                
+                eventDiv.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        ${moodIcon}
+                        <span class="ml-2">${event.mood || '无心情记录'}</span>
+                    </div>
+                    <p class="mb-2">${event.note || '无文字记录'}</p>
+                    ${event.image ? `<img src="${event.image}" alt="记录图片" class="w-full h-auto rounded-lg">` : ''}
+                `;
+                
+                contentDiv.appendChild(eventDiv);
+            });
+            
+            document.getElementById('eventDetailModal').classList.remove('hidden');
+        }
+
+        // 关闭事件详情弹窗
+        function closeEventDetailModal() {
+            document.getElementById('eventDetailModal').classList.add('hidden');
+        }
+
+        // 保存今日记录
+        function saveTodayRecord() {
+            const today = new Date().toISOString().split('T')[0];
+            const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '';
+            const note = document.getElementById('todayNote').value.trim();
+            const imageInput = document.getElementById('todayImage');
+            
+            // 创建新记录
+            const newMemory = {
+                id: Date.now(),
+                date: today,
+                mood: mood,
+                note: note,
+                image: null
+            };
+            
+            // 处理图片
+            if (imageInput.files.length > 0) {
+                const file = imageInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    newMemory.image = e.target.result;
+                    saveMemory(newMemory);
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                saveMemory(newMemory);
+            }
+        }
+
+        // 保存回忆
+        function saveMemory(memory) {
+            // 检查是否已存在该日期的记录
+            const existingIndex = memories.findIndex(m => m.date === memory.date);
+            
+            if (existingIndex !== -1) {
+                // 更新现有记录
+                memories[existingIndex] = memory;
+            } else {
+                // 添加新记录
+                memories.push(memory);
+            }
+            
+            // 保存到本地存储
+            localStorage.setItem('memories', JSON.stringify(memories));
+            
+            // 重新渲染日历和回忆列表
+            renderCalendar();
+            renderMemories();
+            
+            // 清空输入
+            document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active', 'bg-primary', 'text-white'));
+            document.getElementById('todayNote').value = '';
+            document.getElementById('todayImage').value = '';
+            
+            alert('记录保存成功！');
+        }
+
+        // 加载今日记录
+        function loadTodayRecord() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayMemory = memories.find(memory => memory.date === today);
+            
+            if (todayMemory) {
+                // 设置心情
+                if (todayMemory.mood) {
+                    document.querySelectorAll('.mood-btn').forEach(btn => {
+                        if (btn.dataset.mood === todayMemory.mood) {
+                            btn.classList.add('active', 'bg-primary', 'text-white');
+                        }
+                    });
+                }
+                
+                // 设置笔记
+                document.getElementById('todayNote').value = todayMemory.note || '';
+            }
+        }
+
+        // 渲染回忆列表
+        function renderMemories(filter = 'all') {
+            const memoriesList = document.getElementById('memoriesList');
+            memoriesList.innerHTML = '';
+            
+            // 根据筛选条件过滤回忆
+            let filteredMemories = memories;
+            if (filter === 'image') {
+                filteredMemories = memories.filter(memory => memory.image);
+            } else if (filter === 'text') {
+                filteredMemories = memories.filter(memory => memory.note);
+            }
+            
+            // 按日期排序（最新的在前）
+            filteredMemories.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (filteredMemories.length === 0) {
+                memoriesList.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">暂无回忆记录</div>';
+                return;
+            }
+            
+            filteredMemories.forEach(memory => {
+                const date = new Date(memory.date);
+                const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+                
+                let moodIcon = '';
+                let moodColor = '';
+                
+                switch(memory.mood) {
+                    case '开心': 
+                        moodIcon = 'fa-smile-o'; 
+                        moodColor = 'text-accent'; 
+                        break;
+                    case '平静': 
+                        moodIcon = 'fa-meh-o'; 
+                        moodColor = 'text-secondary'; 
+                        break;
+                    case '难过': 
+                        moodIcon = 'fa-frown-o'; 
+                        moodColor = 'text-primary'; 
+                        break;
+                    case '生气': 
+                        moodIcon = 'fa-angry'; 
+                        moodColor = 'text-red-500'; 
+                        break;
+                }
+                
+                const memoryCard = document.createElement('div');
+                memoryCard.className = 'memory-card bg-white rounded-xl shadow-soft overflow-hidden';
+                memoryCard.innerHTML = `
+                    <div class="p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold">${formattedDate}</h3>
+                            ${memory.mood ? `<span class="flex items-center"><i class="fa ${moodIcon} ${moodColor} mr-1"></i> ${memory.mood}</span>` : ''}
+                        </div>
+                        ${memory.note ? `<p class="text-gray-700 mb-2">${memory.note}</p>` : ''}
+                    </div>
+                    ${memory.image ? `<img src="${memory.image}" alt="回忆图片" class="w-full h-48 object-cover">` : ''}
+                `;
+                
+                memoriesList.appendChild(memoryCard);
+            });
+        }
+
+        // 搜索回忆
+        function searchMemories() {
+            const filter = document.getElementById('memoryFilter').value;
+            renderMemories(filter);
+        }
+
+        // 渲染情话列表
+        function renderQuotes() {
+            const quotesList = document.getElementById('quotesList');
+            quotesList.innerHTML = '';
+            
+            if (quotes.length === 0) {
+                quotesList.innerHTML = '<div class="text-center py-8 text-gray-500">暂无情话记录</div>';
+                return;
+            }
+            
+            quotes.forEach(quote => {
+                const author = quote.author === 'name1' ? coupleNames.name1 : 
+                              quote.author === 'name2' ? coupleNames.name2 : '其他';
+                
+                const quoteCard = document.createElement('div');
+                quoteCard.className = 'bg-white rounded-xl shadow-soft p-6';
+                quoteCard.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="text-4xl text-primary/30 mr-4">
+                            <i class="fa fa-quote-left"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-lg mb-4">${quote.text}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-500">— ${author || '未知'}</span>
+                                <span class="text-sm text-gray-400">${formatDate(quote.date)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                quotesList.appendChild(quoteCard);
+            });
+        }
+
+        // 添加情话
+        function addQuote() {
+            document.getElementById('quoteText').value = '';
+            document.getElementById('quoteModal').classList.remove('hidden');
+        }
+
+        // 关闭情话弹窗
+        function closeQuoteModal() {
+            document.getElementById('quoteModal').classList.add('hidden');
+        }
+
+        // 保存情话
+        function saveQuote() {
+            const text = document.getElementById('quoteText').value.trim();
+            const author = document.getElementById('quoteAuthor').value;
+            
+            if (!text) {
+                alert('请输入情话内容');
+                return;
+            }
+            
+            const newQuote = {
+                id: Date.now(),
+                text: text,
+                author: author,
+                date: new Date().toISOString()
+            };
+            
+            quotes.push(newQuote);
+            localStorage.setItem('quotes', JSON.stringify(quotes));
+            
+            renderQuotes();
+            closeQuoteModal();
+            
+            alert('情话保存成功！');
+        }
+
+        // 获取随机情话
+        function getRandomQuote() {
+            const randomQuotes = [
+                "最好的爱情，是我崇拜你像个英雄，你宠爱我像个孩子。",
+                "我喜欢你，像风走了八千里，不问归期。",
+                "你是我生命中最美好的意外。",
+                "世界那么大，我只想和你一起看。",
+                "你的过去我来不及参与，你的未来我奉陪到底。",
+                "余生请多指教。",
+                "我想和你一起慢慢变老。",
+                "你是我每天醒来的理由。",
+                "和你在一起的每一天都是情人节。",
+                "你在，我在，就是海枯石烂。"
+            ];
+            
+            const randomIndex = Math.floor(Math.random() * randomQuotes.length);
+            document.getElementById('dailyQuote').textContent = `"${randomQuotes[randomIndex]}"`;
+        }
+
+        // 渲染倒计时
+        function renderCountdowns() {
+            const countdownsList = document.getElementById('countdownsList');
+            countdownsList.innerHTML = '';
+            
+            if (countdowns.length === 0) {
+                countdownsList.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">暂无倒计时</div>';
+                return;
+            }
+            
+            countdowns.forEach(countdown => {
+                const now = new Date();
+                const targetDate = new Date(countdown.date);
+                const diff = targetDate - now;
+                
+                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                let text = '';
+                let color = '';
+                
+                if (days > 0) {
+                    text = `还有 ${days} 天`;
+                    color = 'bg-secondary/10 text-secondary';
+                } else if (days === 0) {
+                    text = '今天！';
+                    color = 'bg-accent/10 text-accent';
+                } else {
+                    days = Math.abs(days);
+                    text = `${days} 天前`;
+                    color = 'bg-gray-100 text-gray-500';
+                }
+                
+                const countdownCard = document.createElement('div');
+                countdownCard.className = `bg-white rounded-xl shadow-soft p-4 border-l-4 border-secondary`;
+                countdownCard.innerHTML = `
+                    <h3 class="font-bold mb-2">${countdown.name}</h3>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">${formatDate(countdown.date)}</span>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${color}">${text}</span>
+                    </div>
+                    <button onclick="deleteCountdown(${countdown.id})" class="mt-2 text-xs text-red-500 hover:text-red-700">
+                        <i class="fa fa-trash mr-1"></i> 删除
+                    </button>
+                `;
+                
+                countdownsList.appendChild(countdownCard);
+            });
+        }
+
+        // 添加倒计时
+        function addCountdown() {
+            document.getElementById('countdownName').value = '';
+            document.getElementById('countdownDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('countdownModal').classList.remove('hidden');
+        }
+
+        // 关闭倒计时弹窗
+        function closeCountdownModal() {
+            document.getElementById('countdownModal').classList.add('hidden');
+        }
+
+        // 保存倒计时
+        function saveCountdown() {
+            const name = document.getElementById('countdownName').value.trim();
+            const date = document.getElementById('countdownDate').value;
+            
+            if (!name) {
+                alert('请输入事件名称');
+                return;
+            }
+            
+            if (!date) {
+                alert('请选择日期');
+                return;
+            }
+            
+            const newCountdown = {
+                id: Date.now(),
+                name: name,
+                date: date
+            };
+            
+            countdowns.push(newCountdown);
+            localStorage.setItem('countdowns', JSON.stringify(countdowns));
+            
+            renderCountdowns();
+            closeCountdownModal();
+            
+            alert('倒计时添加成功！');
+        }
+
+        // 删除倒计时
+        function deleteCountdown(id) {
+            if (confirm('确定要删除这个倒计时吗？')) {
+                countdowns = countdowns.filter(c => c.id !== id);
+                localStorage.setItem('countdowns', JSON.stringify(countdowns));
+                renderCountdowns();
+            }
+        }
+
+        // 格式化日期
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+
+        // 心情按钮点击事件
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('mood-btn')) {
+                // 移除其他按钮的激活状态
+                document.querySelectorAll('.mood-btn').forEach(btn => {
+                    btn.classList.remove('active', 'bg-primary', 'text-white');
+                });
+                
+                // 激活当前按钮
+                e.target.classList.add('active', 'bg-primary', 'text-white');
+            }
+        });
+
+        // 点击弹窗外部关闭弹窗
+        document.querySelectorAll('.fixed').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
     </script>
 </body>
 </html>
