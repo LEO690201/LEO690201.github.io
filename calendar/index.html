@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时光计时器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .timer-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #ff4500;
+            text-align: center;
+        }
+        .time-display {
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .calendar-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        input[type="date"] {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .reset-btn {
+            background-color: #dc3545;
+        }
+        .reset-btn:hover {
+            background-color: #bb2d3b;
+        }
+    </style>
+</head>
+<body>
+    <h1>时光计时器</h1>
+
+    <!-- 相逢时间计时器 -->
+    <div class="timer-container">
+        <h2>相逢已过</h2>
+        <div class="calendar-section">
+            <p>选择相逢日期：</p>
+            <input type="date" id="meetDate">
+            <button onclick="setMeetTime()">确认相逢时间</button>
+        </div>
+        <div class="time-display" id="meetTimeDisplay">请选择相逢日期</div>
+    </div>
+
+    <!-- 恋爱时间计时器 -->
+    <div class="timer-container">
+        <h2>恋爱已过</h2>
+        <div class="controls">
+            <button onclick="startLoveTime()">开始记录恋爱时间</button>
+            <button class="reset-btn" onclick="resetLoveTime()">重置恋爱时间</button>
+        </div>
+        <div class="time-display" id="loveTimeDisplay">未开始记录</div>
+    </div>
+
+    <script>
+        // 初始化：从本地存储加载已保存的时间
+        let meetTime = localStorage.getItem('meetTime') ? new Date(localStorage.getItem('meetTime')) : null;
+        let loveTime = localStorage.getItem('loveTime') ? new Date(localStorage.getItem('loveTime')) : null;
+
+        // 渲染计时器
+        function updateTimers() {
+            // 更新相逢计时器
+            if (meetTime) {
+                const now = new Date();
+                const diff = now - meetTime;
+                document.getElementById('meetTimeDisplay').textContent = formatTime(diff);
+            }
+
+            // 更新恋爱计时器
+            if (loveTime) {
+                const now = new Date();
+                const diff = now - loveTime;
+                document.getElementById('loveTimeDisplay').textContent = formatTime(diff);
+            }
+
+            // 每秒更新一次
+            requestAnimationFrame(updateTimers);
+        }
+
+        // 格式化时间（毫秒 -> 天时分秒）
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const days = Math.floor(totalSeconds / (60 * 60 * 24));
+            const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+            const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+            const seconds = totalSeconds % 60;
+            return `${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+        }
+
+        // 设置相逢时间（从日历选择）
+        function setMeetTime() {
+            const dateInput = document.getElementById('meetDate');
+            if (dateInput.value) {
+                meetTime = new Date(dateInput.value);
+                localStorage.setItem('meetTime', meetTime.toISOString()); // 保存到本地存储
+            }
+        }
+
+        // 开始记录恋爱时间（以当前时间为起点）
+        function startLoveTime() {
+            loveTime = new Date();
+            localStorage.setItem('loveTime', loveTime.toISOString()); // 保存到本地存储
+        }
+
+        // 重置恋爱时间
+        function resetLoveTime() {
+            loveTime = null;
+            localStorage.removeItem('loveTime');
+            document.getElementById('loveTimeDisplay').textContent = '未开始记录';
+        }
+
+        // 页面加载时启动计时器
+        updateTimers();
+    </script>
+</body>
+</html>
