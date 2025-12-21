@@ -333,8 +333,9 @@
                     </div>
                     
                     <div class="mb-4">
-                        <label for="recordImage" class="block text-sm font-medium text-gray-700 mb-2">添加图片：</label>
-                        <input type="file" id="recordImage" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <label for="recordFile" class="block text-sm font-medium text-gray-700 mb-2">添加文件（图片/文档）：</label>
+                        <input type="file" id="recordFile" accept="image/*,.pdf,.doc,.docx,.txt,.zip" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <p class="text-xs text-gray-500 mt-1">支持图片、PDF、Word文档、文本文件和压缩包</p>
                     </div>
                     
                     <div class="flex space-x-3">
@@ -810,7 +811,7 @@
                         <span class="ml-2">${event.mood || '无心情记录'}</span>
                     </div>
                     <p class="mb-2">${event.note || '无文字记录'}</p>
-                    ${event.image ? `<img src="${event.image}" alt="记录图片" class="w-full h-auto rounded-lg">` : ''}
+                    ${event.file ? renderFilePreview(event) : ''}
                 `;
                 
                 contentDiv.appendChild(eventDiv);
@@ -834,7 +835,7 @@
             
             const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '';
             const note = document.getElementById('recordNote').value.trim();
-            const imageInput = document.getElementById('recordImage');
+            const fileInput = document.getElementById('recordFile');
             
             // 创建新记录
             const newMemory = {
@@ -842,16 +843,27 @@
                 date: date,
                 mood: mood,
                 note: note,
-                image: null
+                file: null,
+                fileName: null,
+                fileType: null
             };
             
-            // 处理图片
-            if (imageInput.files.length > 0) {
-                const file = imageInput.files[0];
+            // 处理文件
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                
+                // 检查文件大小（限制为10MB）
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('文件大小不能超过10MB');
+                    return;
+                }
+                
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
-                    newMemory.image = e.target.result;
+                    newMemory.file = e.target.result;
+                    newMemory.fileName = file.name;
+                    newMemory.fileType = file.type;
                     saveMemory(newMemory);
                 };
                 
@@ -909,7 +921,116 @@
                 btn.classList.remove('active', 'bg-primary', 'text-white');
             });
             document.getElementById('recordNote').value = '';
-            document.getElementById('recordImage').value = '';
+            document.getElementById('recordFile').value = '';
+        }
+
+        // 切换笔记展开/折叠
+        function toggleNote(button) {
+            const noteElement = button.previousElementSibling;
+            const isExpanded = noteElement.classList.contains('line-clamp-none');
+            
+            if (isExpanded) {
+                // 折叠
+                noteElement.classList.remove('line-clamp-none');
+                noteElement.classList.add('line-clamp-3');
+                button.textContent = '展开';
+            } else {
+                // 展开
+                noteElement.classList.remove('line-clamp-3');
+                noteElement.classList.add('line-clamp-none');
+                button.textContent = '收起';
+            }
+        }
+
+        // 渲染文件预览
+        function renderFilePreview(memory) {
+            const fileType = memory.fileType || '';
+            const fileName = memory.fileName || '未知文件';
+            
+            // 图片类型
+            if (fileType.startsWith('image/')) {
+                return `
+                    <div class="mt-2">
+                        <img src="${memory.file}" alt="${fileName}" class="w-full h-auto max-h-60 object-contain rounded-lg border">
+                        <p class="text-xs text-gray-500 mt-1">${fileName}</p>
+                    </div>
+                `;
+            }
+            
+            // PDF类型
+            else if (fileType === 'application/pdf') {
+                return `
+                    <div class="mt-2 p-4 border rounded-lg bg-gray-50 flex items-center">
+                        <div class="w-12 h-12 bg-red-100 rounded flex items-center justify-center mr-3">
+                            <i class="fa fa-file-pdf-o text-red-500 text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium truncate">${fileName}</p>
+                            <a href="${memory.file}" target="_blank" class="text-xs text-primary hover:underline">查看PDF文件</a>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Word文档
+            else if (fileType.includes('word') || fileType.includes('msword')) {
+                return `
+                    <div class="mt-2 p-4 border rounded-lg bg-gray-50 flex items-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded flex items-center justify-center mr-3">
+                            <i class="fa fa-file-word-o text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium truncate">${fileName}</p>
+                            <a href="${memory.file}" download="${fileName}" class="text-xs text-primary hover:underline">下载Word文档</a>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 文本文件
+            else if (fileType === 'text/plain') {
+                return `
+                    <div class="mt-2 p-4 border rounded-lg bg-gray-50 flex items-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center mr-3">
+                            <i class="fa fa-file-text-o text-gray-500 text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium truncate">${fileName}</p>
+                            <a href="${memory.file}" download="${fileName}" class="text-xs text-primary hover:underline">下载文本文件</a>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 压缩包
+            else if (fileType.includes('zip') || fileType.includes('compressed')) {
+                return `
+                    <div class="mt-2 p-4 border rounded-lg bg-gray-50 flex items-center">
+                        <div class="w-12 h-12 bg-yellow-100 rounded flex items-center justify-center mr-3">
+                            <i class="fa fa-file-archive-o text-yellow-500 text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium truncate">${fileName}</p>
+                            <a href="${memory.file}" download="${fileName}" class="text-xs text-primary hover:underline">下载压缩包</a>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 其他文件类型
+            else {
+                return `
+                    <div class="mt-2 p-4 border rounded-lg bg-gray-50 flex items-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center mr-3">
+                            <i class="fa fa-file-o text-gray-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium truncate">${fileName}</p>
+                            <a href="${memory.file}" download="${fileName}" class="text-xs text-primary hover:underline">下载文件</a>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // 保存回忆
@@ -997,9 +1118,9 @@
                             <h3 class="font-bold">${formattedDate}</h3>
                             ${memory.mood ? `<span class="flex items-center"><i class="fa ${moodIcon} ${moodColor} mr-1"></i> ${memory.mood}</span>` : ''}
                         </div>
-                        ${memory.note ? `<p class="text-gray-700 mb-2">${memory.note}</p>` : ''}
+                        ${memory.note ? `<div class="text-gray-700 mb-2"><p class="memory-note line-clamp-3" data-full="${memory.note}">${memory.note}</p>${memory.note.length > 100 ? '<button onclick="toggleNote(this)" class="text-xs text-primary hover:underline mt-1">展开</button>' : ''}</div>` : ''}
+                        ${memory.file ? renderFilePreview(memory) : ''}
                     </div>
-                    ${memory.image ? `<img src="${memory.image}" alt="回忆图片" class="w-full h-48 object-cover">` : ''}
                 `;
                 
                 memoriesList.appendChild(memoryCard);
