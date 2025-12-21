@@ -19,6 +19,7 @@
             justify-content: center;
             flex-wrap: wrap;
             gap: 20px; /* 按钮间距 */
+            margin-top: 30px; /* 增加顶部间距 */
         }
         button {
             padding: 15px 30px;
@@ -33,16 +34,25 @@
         button:hover {
             background-color: #0056b3;
         }
+        /* 给日历按钮不同颜色以便区分 */
+        button.calendar-btn {
+            background-color: #28a745;
+        }
+        button.calendar-btn:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
     <h1>热血高校</h1>
-    <p>欢迎来到热血高校！选择你的游戏冒险。(国内建议科学上网访问)</p>
+    <p>欢迎来到热血高校！选择你的游戏冒险或查看日历。(国内建议科学上网访问)</p>
     <p>部分内容可能需要一段时间的加载</p>
     
     <div class="button-container">
         <button onclick="window.location.href = '/beat_xyy/'">玩游戏：Beat_XYY (地图: 清华健身房)</button>
         <button onclick="window.location.href = '/beat_yjy/'">玩游戏：Beat_YJY (地图: 武大图书馆)</button>
+        <!-- 新增日历按钮 -->
+        <button class="calendar-btn" onclick="window.location.href = '/calendar/'">查看日历</button>
     </div>
 </body>
 </html>
