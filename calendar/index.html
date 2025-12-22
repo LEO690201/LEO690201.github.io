@@ -533,10 +533,25 @@
             // 加载背景图片
             loadBackgroundImage();
             
-            // 设置日期输入框的默认值
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('meetDate').value = meetTime ? meetTime.toISOString().split('T')[0] : '';
-            document.getElementById('loveDate').value = loveTime ? loveTime.toISOString().split('T')[0] : '';
+            // 设置日期时间输入框的默认值
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            
+            // 对于 datetime-local 类型的输入框，需要设置完整的日期和时间
+            document.getElementById('meetDate').value = meetTime ? 
+                meetTime.getFullYear() + '-' + 
+                String(meetTime.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(meetTime.getDate()).padStart(2, '0') + 'T' + 
+                String(meetTime.getHours()).padStart(2, '0') + ':' + 
+                String(meetTime.getMinutes()).padStart(2, '0') : '';
+                
+            document.getElementById('loveDate').value = loveTime ? 
+                loveTime.getFullYear() + '-' + 
+                String(loveTime.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(loveTime.getDate()).padStart(2, '0') + 'T' + 
+                String(loveTime.getHours()).padStart(2, '0') + ':' + 
+                String(loveTime.getMinutes()).padStart(2, '0') : '';
+                
             document.getElementById('countdownDate').value = today;
             document.getElementById('recordDate').value = today;
             
@@ -1159,6 +1174,14 @@
                                 <span class="text-sm text-gray-400">${formatDate(quote.date)}</span>
                             </div>
                         </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button onclick="editQuote(${quote.id})" class="text-blue-500 hover:text-blue-700">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button onclick="deleteQuote(${quote.id})" class="text-red-500 hover:text-red-700">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
                 
@@ -1177,6 +1200,24 @@
             document.getElementById('quoteModal').classList.add('hidden');
         }
 
+        // 编辑情话
+        function editQuote(id) {
+            const quote = quotes.find(q => q.id === id);
+            if (!quote) return;
+            
+            document.getElementById('quoteText').value = quote.text;
+            document.getElementById('quoteAuthor').value = quote.author;
+            
+            // 保存当前编辑的情话ID
+            document.getElementById('quoteModal').setAttribute('data-edit-id', id);
+            
+            // 更改弹窗标题和保存按钮文本
+            const modalTitle = document.querySelector('#quoteModal h2');
+            if (modalTitle) modalTitle.textContent = '编辑情话';
+            
+            document.getElementById('quoteModal').classList.remove('hidden');
+        }
+        
         // 保存情话
         function saveQuote() {
             const text = document.getElementById('quoteText').value.trim();
@@ -1187,20 +1228,47 @@
                 return;
             }
             
-            const newQuote = {
-                id: Date.now(),
-                text: text,
-                author: author,
-                date: new Date().toISOString()
-            };
+            // 检查是否是编辑模式
+            const editId = document.getElementById('quoteModal').getAttribute('data-edit-id');
             
-            quotes.push(newQuote);
+            if (editId) {
+                // 编辑模式
+                const index = quotes.findIndex(q => q.id == editId);
+                if (index !== -1) {
+                    quotes[index].text = text;
+                    quotes[index].author = author;
+                    quotes[index].date = new Date().toISOString(); // 更新时间
+                }
+                // 清除编辑ID
+                document.getElementById('quoteModal').removeAttribute('data-edit-id');
+                // 恢复弹窗标题
+                const modalTitle = document.querySelector('#quoteModal h2');
+                if (modalTitle) modalTitle.textContent = '添加情话';
+            } else {
+                // 添加新模式
+                const newQuote = {
+                    id: Date.now(),
+                    text: text,
+                    author: author,
+                    date: new Date().toISOString()
+                };
+                quotes.push(newQuote);
+            }
+            
             localStorage.setItem('quotes', JSON.stringify(quotes));
-            
             renderQuotes();
             closeQuoteModal();
             
             alert('情话保存成功！');
+        }
+        
+        // 删除情话
+        function deleteQuote(id) {
+            if (confirm('确定要删除这条情话吗？')) {
+                quotes = quotes.filter(q => q.id !== id);
+                localStorage.setItem('quotes', JSON.stringify(quotes));
+                renderQuotes();
+            }
         }
 
         // 获取随机情话
