@@ -1153,6 +1153,13 @@
             
             let filteredMemories = memories;
             
+            // 应用类型筛选
+            if (filter === 'image') {
+                filteredMemories = filteredMemories.filter(memory => memory.file);
+            } else if (filter === 'text') {
+                filteredMemories = filteredMemories.filter(memory => memory.note);
+            }
+            
             // 应用关键词搜索
             if (searchTerm) {
                 filteredMemories = filteredMemories.filter(memory => 
