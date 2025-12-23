@@ -1,3 +1,4 @@
+
 <html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -333,9 +334,10 @@
                     </div>
                     
                     <div class="mb-4">
-                        <label for="recordFile" class="block text-sm font-medium text-gray-700 mb-2">添加文件（图片/文档）：</label>
-                        <input type="file" id="recordFile" accept="image/*,.pdf,.doc,.docx,.txt,.zip" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                        <p class="text-xs text-gray-500 mt-1">支持图片、PDF、Word文档、文本文件和压缩包</p>
+                    <label for="recordFile" class="block text-sm font-medium text-gray-700 mb-2">添加文件（图片/文档）：</label>
+                    <input type="file" id="recordFile" accept="image/*,.pdf,.doc,.docx,.txt,.zip" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <p id="fileStatus" class="text-xs mt-1"></p>
+                    <p class="text-xs text-gray-500 mt-1">支持图片、PDF、Word文档、文本文件和压缩包</p>
                     </div>
                     
                     <div class="flex space-x-3">
@@ -354,6 +356,11 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">我们的回忆</h2>
                     <div class="flex space-x-2">
+                        <input type="text" id="memorySearch" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="搜索关键词...">
+                        <select id="monthFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">所有时间</option>
+                            <!-- 月份选项将在这里动态生成 -->
+                        </select>
                         <select id="memoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                             <option value="all">全部回忆</option>
                             <option value="image">有图片</option>
@@ -530,6 +537,29 @@
         let currentDate = new Date();
         let currentViewDate = new Date();
 
+        // 初始化月份筛选器
+        function initMonthFilter() {
+            const monthFilter = document.getElementById('monthFilter');
+            if (!monthFilter) return;
+            
+            // 获取所有回忆的年月
+            const yearMonths = [...new Set(memories.map(memory => memory.date.substring(0, 7)))].sort();
+            
+            // 清空选项（保留第一个"所有时间"）
+            while (monthFilter.options.length > 1) {
+                monthFilter.remove(1);
+            }
+            
+            // 添加年月选项
+            yearMonths.forEach(yearMonth => {
+                const date = new Date(yearMonth + '-01');
+                const option = document.createElement('option');
+                option.value = yearMonth;
+                option.textContent = `${date.getFullYear()}年${date.getMonth() + 1}月`;
+                monthFilter.appendChild(option);
+            });
+        }
+
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
             // 加载情侣姓名
@@ -579,6 +609,9 @@
             
             // 加载倒计时
             renderCountdowns();
+            
+            // 初始化月份筛选器
+            initMonthFilter();
             
             // 加载默认日期记录
             loadDateRecord(today);
@@ -863,7 +896,8 @@
                 note: note,
                 file: null,
                 fileName: null,
-                fileType: null
+                fileType: null,
+                timestamp: new Date().toISOString()
             };
             
             // 处理文件
@@ -876,13 +910,35 @@
                     return;
                 }
                 
+                // 显示上传状态
+                const fileStatus = document.getElementById('fileStatus');
+                fileStatus.textContent = '正在上传文件...';
+                fileStatus.className = 'text-xs text-blue-500 mt-1';
+                
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
                     newMemory.file = e.target.result;
                     newMemory.fileName = file.name;
                     newMemory.fileType = file.type;
+                    
+                    // 清除状态并保存
+                    fileStatus.textContent = '文件上传成功！';
+                    fileStatus.className = 'text-xs text-green-500 mt-1';
+                    
+                    setTimeout(() => {
+                        const currentStatus = document.getElementById('fileStatus');
+                        if (currentStatus && currentStatus.textContent === '文件上传成功！') {
+                            currentStatus.textContent = '';
+                        }
+                    }, 3000);
+                    
                     saveMemory(newMemory);
+                };
+                
+                reader.onerror = function() {
+                    fileStatus.textContent = '文件上传失败，请重试';
+                    fileStatus.className = 'text-xs text-red-500 mt-1';
                 };
                 
                 reader.readAsDataURL(file);
@@ -895,10 +951,8 @@
         function loadDateRecord(dateStr) {
             const memory = memories.find(m => m.date === dateStr);
             
-            // 清空之前的选择
-            document.querySelectorAll('.mood-btn').forEach(btn => {
-                btn.classList.remove('active', 'bg-primary', 'text-white');
-            });
+            // 更新心情按钮状态
+            updateMoodButtonState(dateStr);
             
             // 设置表单数据
             if (memory) {
@@ -917,7 +971,6 @@
                 // 图片无法直接恢复，需要用户重新选择
             } else {
                 document.getElementById('recordNote').value = '';
-                document.getElementById('recordImage').value = '';
             }
             
             // 更新标题
@@ -1071,6 +1124,9 @@
             renderCalendar();
             renderMemories();
             
+            // 重新初始化月份筛选器
+            initMonthFilter();
+            
             // 清空输入
             document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active', 'bg-primary', 'text-white'));
             document.getElementById('todayNote').value = '';
@@ -1081,21 +1137,51 @@
 
 
 
-        // 渲染回忆列表
-        function renderMemories(filter = 'all') {
-            const memoriesList = document.getElementById('memoriesList');
-            memoriesList.innerHTML = '';
+        // 月份/年份筛选器
+        function getMonthYearFilter() {
+            const monthSelect = document.getElementById('monthFilter');
+            if (!monthSelect || !monthSelect.value) return null;
             
-            // 根据筛选条件过滤回忆
+            return monthSelect.value; // 格式为 "YYYY-MM"
+        }
+
+        // 回忆搜索和筛选功能
+        function searchAndFilterMemories() {
+            const searchTerm = document.getElementById('memorySearch').value.toLowerCase();
+            const filter = document.getElementById('memoryFilter').value;
+            const monthYearFilter = getMonthYearFilter();
+            
             let filteredMemories = memories;
-            if (filter === 'image') {
-                filteredMemories = memories.filter(memory => memory.image);
-            } else if (filter === 'text') {
-                filteredMemories = memories.filter(memory => memory.note);
+            
+            // 应用关键词搜索
+            if (searchTerm) {
+                filteredMemories = filteredMemories.filter(memory => 
+                    memory.date.includes(searchTerm) ||
+                    (memory.mood && memory.mood.includes(searchTerm)) ||
+                    (memory.note && memory.note.includes(searchTerm))
+                );
+            }
+            
+            // 应用月份/年份筛选
+            if (monthYearFilter) {
+                filteredMemories = filteredMemories.filter(memory => 
+                    memory.date.startsWith(monthYearFilter)
+                );
             }
             
             // 按日期排序（最新的在前）
             filteredMemories.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            return filteredMemories;
+        }
+
+        // 渲染回忆列表
+        function renderMemories() {
+            const memoriesList = document.getElementById('memoriesList');
+            memoriesList.innerHTML = '';
+            
+            // 获取过滤后的回忆
+            const filteredMemories = searchAndFilterMemories();
             
             if (filteredMemories.length === 0) {
                 memoriesList.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">暂无回忆记录</div>';
@@ -1147,8 +1233,7 @@
 
         // 搜索回忆
         function searchMemories() {
-            const filter = document.getElementById('memoryFilter').value;
-            renderMemories(filter);
+            renderMemories();
         }
 
         // 渲染情话列表
@@ -1438,6 +1523,22 @@
             return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
         }
 
+        // 页面初始化时恢复心情按钮状态
+        function updateMoodButtonState(dateStr) {
+            // 清空之前的选择
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-primary', 'text-white');
+            });
+            
+            const memory = memories.find(m => m.date === dateStr);
+            if (memory && memory.mood) {
+                const activeBtn = document.querySelector(`.mood-btn[data-mood="${memory.mood}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active', 'bg-primary', 'text-white');
+                }
+            }
+        }
+
         // 心情按钮点击事件
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('mood-btn')) {
@@ -1459,6 +1560,92 @@
                 }
             });
         });
+
+        // 版本检测和部分覆盖导入
+        function importData(data, mergeMode = 'full') {
+            let importedCount = 0;
+            
+            // 检查版本兼容性
+            if (data.version && parseFloat(data.version) < 1.0) {
+                alert('警告：数据版本较旧，可能无法完全兼容。');
+            }
+            
+            if (mergeMode === 'full') {
+                // 完全覆盖模式
+                if (data.meetTime) meetTime = new Date(data.meetTime);
+                if (data.loveTime) loveTime = new Date(data.loveTime);
+                if (data.coupleNames) coupleNames = data.coupleNames;
+                if (data.memories) memories = data.memories;
+                if (data.quotes) quotes = data.quotes;
+                if (data.countdowns) countdowns = data.countdowns;
+                importedCount = Object.keys(data).length;
+            } else {
+                // 部分合并模式
+                if (data.meetTime && confirm('是否更新相逢时间？')) {
+                    meetTime = new Date(data.meetTime);
+                    importedCount++;
+                }
+                if (data.loveTime && confirm('是否更新恋爱时间？')) {
+                    loveTime = new Date(data.loveTime);
+                    importedCount++;
+                }
+                if (data.coupleNames && confirm('是否更新情侣姓名？')) {
+                    coupleNames = data.coupleNames;
+                    importedCount++;
+                }
+                if (data.memories && confirm('是否合并回忆记录？')) {
+                    // 合并回忆，避免重复
+                    data.memories.forEach(newMemory => {
+                        const existingIndex = memories.findIndex(m => m.date === newMemory.date);
+                        if (existingIndex !== -1) {
+                            // 更新现有记录
+                            memories[existingIndex] = newMemory;
+                        } else {
+                            // 添加新记录
+                            memories.push(newMemory);
+                        }
+                    });
+                    importedCount++;
+                }
+                if (data.quotes && confirm('是否合并情话记录？')) {
+                    // 合并情话，避免重复
+                    data.quotes.forEach(newQuote => {
+                        if (!quotes.find(q => q.id === newQuote.id)) {
+                            quotes.push(newQuote);
+                        }
+                    });
+                    importedCount++;
+                }
+                if (data.countdowns && confirm('是否合并倒计时？')) {
+                    // 合并倒计时，避免重复
+                    data.countdowns.forEach(newCountdown => {
+                        if (!countdowns.find(c => c.id === newCountdown.id)) {
+                            countdowns.push(newCountdown);
+                        }
+                    });
+                    importedCount++;
+                }
+            }
+            
+            // 保存到本地存储
+            if (meetTime) localStorage.setItem('meetTime', meetTime.toISOString());
+            if (loveTime) localStorage.setItem('loveTime', loveTime.toISOString());
+            localStorage.setItem('coupleNames', JSON.stringify(coupleNames));
+            localStorage.setItem('memories', JSON.stringify(memories));
+            localStorage.setItem('quotes', JSON.stringify(quotes));
+            localStorage.setItem('countdowns', JSON.stringify(countdowns));
+            
+            // 更新界面
+            updateNamesDisplay();
+            document.getElementById('meetDate').value = meetTime ? meetTime.toISOString().split('T')[0] : '';
+            document.getElementById('loveDate').value = loveTime ? loveTime.toISOString().split('T')[0] : '';
+            renderCalendar();
+            renderMemories();
+            renderQuotes();
+            renderCountdowns();
+            
+            return importedCount;
+        }
 
         // 导出数据
         function exportData() {
@@ -1503,35 +1690,16 @@
                         throw new Error('无效的数据格式');
                     }
                     
-                    // 确认导入
-                    if (confirm('确定要导入数据吗？这将覆盖当前的所有记录。')) {
-                        // 导入数据
-                        if (data.meetTime) meetTime = new Date(data.meetTime);
-                        if (data.loveTime) loveTime = new Date(data.loveTime);
-                        if (data.coupleNames) coupleNames = data.coupleNames;
-                        if (data.memories) memories = data.memories;
-                        if (data.quotes) quotes = data.quotes;
-                        if (data.countdowns) countdowns = data.countdowns;
-                        
-                        // 保存到本地存储
-                        if (meetTime) localStorage.setItem('meetTime', meetTime.toISOString());
-                        if (loveTime) localStorage.setItem('loveTime', loveTime.toISOString());
-                        localStorage.setItem('coupleNames', JSON.stringify(coupleNames));
-                        localStorage.setItem('memories', JSON.stringify(memories));
-                        localStorage.setItem('quotes', JSON.stringify(quotes));
-                        localStorage.setItem('countdowns', JSON.stringify(countdowns));
-                        
-                        // 更新界面
-                        updateNamesDisplay();
-                        document.getElementById('meetDate').value = meetTime ? meetTime.toISOString().split('T')[0] : '';
-                        document.getElementById('loveDate').value = loveTime ? loveTime.toISOString().split('T')[0] : '';
-                        renderCalendar();
-                        renderMemories();
-                        renderQuotes();
-                        renderCountdowns();
-                        loadDateRecord(today);
-                        
-                        alert('数据导入成功！');
+                    // 询问用户选择导入模式
+                    const mergeMode = confirm('是否进行完全覆盖导入？\n点击"确定"将完全覆盖所有数据\n点击"取消"将进行选择性合并') ? 'full' : 'merge';
+                    
+                    // 执行导入
+                    const importedCount = importData(data, mergeMode);
+                    
+                    if (importedCount > 0) {
+                        alert(`数据导入成功！共导入 ${importedCount} 项数据。`);
+                    } else {
+                        alert('未导入任何数据。');
                     }
                 } catch (error) {
                     alert('导入失败：' + error.message);
