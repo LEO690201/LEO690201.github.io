@@ -160,6 +160,9 @@
         .calendar-day.mood-生气 {
             background-color: rgba(239, 68, 68, 0.3) !important; /* red-500 for angry */
         }
+        .calendar-day.no-mood {
+            background-color: rgba(156, 163, 175, 0.2) !important; /* gray-400 for no mood */
+        }
     </style>
 </head>
 <body class="bg-light min-h-screen font-sans text-dark">
@@ -818,6 +821,9 @@
                     const memory = memories.find(m => m.date === dateStr);
                     if (memory && memory.mood) {
                         dayElement.classList.add(`mood-${memory.mood}`);
+                    } else if (memory && (memory.note || memory.file)) {
+                        // 如果有记录但没有选择心情，使用灰色背景
+                        dayElement.classList.add('no-mood');
                     }
                 }
                 
