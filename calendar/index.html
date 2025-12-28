@@ -913,19 +913,23 @@
             const note = document.getElementById('recordNote').value.trim();
             const fileInput = document.getElementById('recordFile');
             
+            // 获取当前日期的记录（如果存在）
+            const existingIndex = memories.findIndex(m => m.date === date);
+            const existingMemory = existingIndex !== -1 ? memories[existingIndex] : null;
+            
             // 创建新记录
             const newMemory = {
-                id: Date.now(),
+                id: existingMemory ? existingMemory.id : Date.now(),
                 date: date,
                 mood: mood,
                 note: note,
-                file: null,
-                fileName: null,
-                fileType: null,
+                file: existingMemory ? existingMemory.file : null,
+                fileName: existingMemory ? existingMemory.fileName : null,
+                fileType: existingMemory ? existingMemory.fileType : null,
                 timestamp: new Date().toISOString()
             };
             
-            // 处理文件
+            // 处理文件上传
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 
@@ -958,7 +962,23 @@
                         }
                     }, 3000);
                     
-                    saveMemory(newMemory);
+                    // 更新 memories 数组
+                    if (existingIndex !== -1) {
+                        memories[existingIndex] = newMemory;
+                    } else {
+                        memories.push(newMemory);
+                    }
+
+                    // 保存到 localStorage
+                    localStorage.setItem('memories', JSON.stringify(memories));
+
+                    // 更新界面
+                    renderMemories();
+                    renderCalendar();
+                    initMonthFilter();
+
+                    // 显示成功提示
+                    alert('记录保存成功！');
                 };
                 
                 reader.onerror = function() {
@@ -968,9 +988,27 @@
                 
                 reader.readAsDataURL(file);
             } else {
-                saveMemory(newMemory);
+                // 没有文件上传，直接保存
+                // 更新 memories 数组
+                if (existingIndex !== -1) {
+                    memories[existingIndex] = newMemory;
+                } else {
+                    memories.push(newMemory);
+                }
+
+                // 保存到 localStorage
+                localStorage.setItem('memories', JSON.stringify(memories));
+
+                // 更新界面
+                renderMemories();
+                renderCalendar();
+                initMonthFilter();
+
+                // 显示成功提示
+                alert('记录保存成功！');
             }
         }
+
 
         // 加载指定日期的记录
         function loadDateRecord(dateStr) {
@@ -1129,36 +1167,6 @@
             }
         }
 
-        // 保存回忆
-        function saveMemory(memory) {
-            // 检查是否已存在该日期的记录
-            const existingIndex = memories.findIndex(m => m.date === memory.date);
-            
-            if (existingIndex !== -1) {
-                // 更新现有记录
-                memories[existingIndex] = memory;
-            } else {
-                // 添加新记录
-                memories.push(memory);
-            }
-            
-            // 保存到本地存储
-            localStorage.setItem('memories', JSON.stringify(memories));
-            
-            // 重新渲染日历和回忆列表
-            renderCalendar();
-            renderMemories();
-            
-            // 重新初始化月份筛选器
-            initMonthFilter();
-            
-            // 清空输入
-            document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active', 'bg-primary', 'text-white'));
-            document.getElementById('todayNote').value = '';
-            document.getElementById('todayImage').value = '';
-            
-            alert('记录保存成功！');
-        }
 
 
 
@@ -1247,7 +1255,7 @@
                 }
                 
                 const memoryCard = document.createElement('div');
-                memoryCard.className = 'memory-card bg-white rounded-xl shadow-soft overflow-hidden';
+                memoryCard.className = 'memory-card bg-white rounded-xl shadow-soft overflow-hidden cursor-pointer';
                 memoryCard.innerHTML = `
                     <div class="p-4">
                         <div class="flex justify-between items-center mb-2">
@@ -1258,6 +1266,22 @@
                         ${memory.file ? renderFilePreview(memory) : ''}
                     </div>
                 `;
+                memoryCard.onclick = () => {
+                    // 跳转到日历页面
+                    showPage('calendar');
+                    
+                    // 设置日期并加载记录
+                    document.getElementById('recordDate').value = memory.date;
+                    loadDateRecord(memory.date);
+                    
+                    // 滚动到记录区域
+                    setTimeout(() => {
+                        const recordSection = document.querySelector('.mt-8.bg-white.rounded-xl.shadow-soft.p-6');
+                        if (recordSection) {
+                            recordSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 100);
+                };
                 
                 memoriesList.appendChild(memoryCard);
             });
