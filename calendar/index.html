@@ -501,8 +501,8 @@
             </div>
             
             <div class="mb-4">
-                <label for="quoteText" class="block text-sm font-medium text-gray-700 mb-2">情话内容：</label>
-                <textarea id="quoteText" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="输入你想记录的话语...（使用&lt;br&gt;换行）"></textarea>
+                        <label for="quoteText" class="block text-sm font-medium text-gray-700 mb-2">情话内容：</label>
+                <textarea id="quoteText" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="输入你想记录的话语..." style="white-space: pre-line;"></textarea>
             </div>
             
             <div class="mb-4">
@@ -910,7 +910,9 @@
             }
             
             const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '';
-            const note = document.getElementById('recordNote').value.trim();
+            let note = document.getElementById('recordNote').value;
+            // 将新行转换为<br>标签用于存储
+            note = note.replace(/\n/g, '<br>');
             const fileInput = document.getElementById('recordFile');
             
             // 获取当前日期的记录（如果存在）
@@ -1064,7 +1066,7 @@
             const isExpanded = noteElement.classList.contains('line-clamp-none');
             
             if (isExpanded) {
-                // 折叠
+                // 折略
                 noteElement.classList.remove('line-clamp-none');
                 noteElement.classList.add('line-clamp-3');
                 button.textContent = '展开';
@@ -1262,11 +1264,16 @@
                             <h3 class="font-bold">${formattedDate}</h3>
                             ${memory.mood ? `<span class="flex items-center"><i class="fa ${moodIcon} ${moodColor} mr-1"></i> ${memory.mood}</span>` : ''}
                         </div>
-                        ${memory.note ? `<div class="text-gray-700 mb-2"><p class="memory-note line-clamp-3" data-full="${memory.note}">${memory.note}</p>${memory.note.length > 100 ? '<button onclick="toggleNote(this)" class="text-xs text-primary hover:underline mt-1">展开</button>' : ''}</div>` : ''}
+                        ${memory.note ? `<div class="text-gray-700 mb-2"><p class="memory-note line-clamp-3" data-full="${memory.note.replace(/<br>/g, '\n')}" style="white-space: pre-line;">${memory.note.replace(/<br>/g, '\n')}</p><button onclick="toggleNote(this)" class="text-xs text-primary hover:underline mt-1">展开</button></div>` : ''}
                         ${memory.file ? renderFilePreview(memory) : ''}
                     </div>
                 `;
-                memoryCard.onclick = () => {
+                // 添加点击事件，但仅在点击非按钮区域时触发
+                memoryCard.addEventListener('click', function(e) {
+                    // 如果点击的是按钮或按钮的子元素，则不跳转
+                    if (e.target.closest('button')) {
+                        return;
+                    }
                     // 跳转到日历页面
                     showPage('calendar');
                     
@@ -1281,7 +1288,7 @@
                             recordSection.scrollIntoView({ behavior: 'smooth' });
                         }
                     }, 100);
-                };
+                });
                 
                 memoriesList.appendChild(memoryCard);
             });
@@ -1319,7 +1326,7 @@
                             <i class="fa fa-quote-left"></i>
                         </div>
                         <div class="flex-1">
-                            <p class="text-lg mb-4">${quote.text}</p>
+                            <p class="text-lg mb-4" style="white-space: pre-line;">${quote.text.replace(/<br>/g, '\n')}</p>
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-gray-500">— ${author || '未知'}</span>
                                 <span class="text-sm text-gray-400">${formatDate(quote.date)}</span>
@@ -1368,7 +1375,9 @@
             const quote = quotes.find(q => q.id === id);
             if (!quote) return;
             
-            document.getElementById('quoteText').value = quote.text;
+            // 将存储的<br>标签转换回新行用于显示
+            const displayText = quote.text.replace(/<br>/g, '\n');
+            document.getElementById('quoteText').value = displayText;
             document.getElementById('quoteAuthor').value = quote.author;
             
             // 处理自定义说话人情况
@@ -1392,7 +1401,12 @@
         
         // 保存情话
         function saveQuote() {
-            const text = document.getElementById('quoteText').value.trim();
+            const textarea = document.getElementById('quoteText');
+            let text = textarea.value;
+            
+            // 将新行转换为<br>标签用于存储
+            text = text.replace(/\n/g, '<br>');
+            
             let author = document.getElementById('quoteAuthor').value;
             let customAuthor = null;
             
@@ -1438,6 +1452,10 @@
                 };
                 quotes.push(newQuote);
             }
+            
+            // 清空文本区域并重置样式
+            textarea.value = '';
+            textarea.style.whiteSpace = 'pre-line';
             
             localStorage.setItem('quotes', JSON.stringify(quotes));
             renderQuotes();
@@ -1631,7 +1649,10 @@
                 if (data.meetTime) meetTime = new Date(data.meetTime);
                 if (data.loveTime) loveTime = new Date(data.loveTime);
                 if (data.coupleNames) coupleNames = data.coupleNames;
-                if (data.memories) memories = data.memories;
+                if (data.memories) memories = data.memories.map(mem => ({
+                    ...mem,
+                    timestamp: mem.timestamp || new Date().toISOString()
+                }));
                 if (data.quotes) quotes = data.quotes;
                 if (data.countdowns) countdowns = data.countdowns;
                 importedCount = Object.keys(data).length;
@@ -1655,10 +1676,16 @@
                         const existingIndex = memories.findIndex(m => m.date === newMemory.date);
                         if (existingIndex !== -1) {
                             // 更新现有记录
-                            memories[existingIndex] = newMemory;
+                            memories[existingIndex] = {
+                                ...newMemory,
+                                timestamp: newMemory.timestamp || new Date().toISOString()
+                            };
                         } else {
                             // 添加新记录
-                            memories.push(newMemory);
+                            memories.push({
+                                ...newMemory,
+                                timestamp: newMemory.timestamp || new Date().toISOString()
+                            });
                         }
                     });
                     importedCount++;
