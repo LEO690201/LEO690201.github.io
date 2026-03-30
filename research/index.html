@@ -205,6 +205,32 @@
             background: #eff6ff;
         }
 
+        .link-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            height: 100%;
+        }
+
+        .link-btn {
+            flex-shrink: 0;
+            padding: 0.25rem 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: background-color 0.2s;
+        }
+        .link-btn:hover {
+            background-color: #2563eb;
+        }
+        .link-btn.disabled {
+            background-color: #9ca3af;
+            pointer-events: none;
+        }
+
         .delete-row-btn {
             position: absolute;
             top: 0.5rem;
@@ -222,6 +248,19 @@
             background-color: #fef3c7;
             padding: 2px 4px;
             border-radius: 2px;
+        }
+
+        .article-title-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            background: transparent;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .article-title-input:focus {
+            outline: none;
+            background: #eff6ff;
         }
     </style>
 </head>
@@ -394,7 +433,7 @@
             websites: [],
             ideas: [],
             columnWidths: {
-                papers: [150, 150, 200, 150, 200, 150, 150, 150],
+                papers: [180, 200, 150, 150, 200, 150, 200, 150, 150, 150],
                 websites: [250, 250, 200]
             }
         };
@@ -457,7 +496,7 @@
             appData.papers.forEach((row, index) => {
                 const allText = Object.values(row).join(' ').toLowerCase();
                 if (allText.includes(query)) {
-                    results.push({ type: '论文', title: row.field || '无领域', content: (row.innovation || '').substring(0, 100), tab: 'papers', index });
+                    results.push({ type: '论文', title: row.articleName || row.field || '无标题', content: (row.innovation || '').substring(0, 100), tab: 'papers', index });
                 }
             });
 
@@ -596,8 +635,17 @@
         }
 
         // --- Papers Logic ---
-        const paperFields = ['link', 'field', 'advantages', 'innovation', 'io', 'modulesUsed', 'moduleUsage', 'scenario', 'cons'];
-        const paperLabels = ['链接', '领域', '优势', '创新点 & 原因', '输入 / 输出', '使用模块 & 可复用性', '作为模块用途', '使用场景', '缺点 & 重要性'];
+        const paperFields = ['articleName', 'link', 'field', 'advantages', 'innovation', 'io', 'modulesUsed', 'moduleUsage', 'scenario', 'cons'];
+        const paperLabels = ['文章名称', '链接', '领域', '优势', '创新点 & 原因', '输入 / 输出', '使用模块 & 可复用性', '作为模块用途', '使用场景', '缺点 & 重要性'];
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
 
         function renderPapers() {
             // Render Header
@@ -622,9 +670,25 @@
                 
                 rowDiv.innerHTML = paperFields.map((field, fIndex) => {
                     const isLink = field === 'link';
-                    const cellContent = isLink 
-                        ? `<input type="text" class="link-input" value="${row[field] || ''}" placeholder="https://..." oninput="updatePaper(${rIndex}, '${field}', this.value)">`
-                        : `<textarea class="cell-textarea" placeholder="${paperLabels[fIndex]}" oninput="updatePaper(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
+                    const isArticleName = field === 'articleName';
+                    
+                    let cellContent = '';
+                    if (isLink) {
+                        const linkValue = row[field] || '';
+                        const hasValidLink = isValidUrl(linkValue);
+                        cellContent = `
+                            <div class="link-display">
+                                <input type="text" class="link-input flex-1" value="${linkValue}" placeholder="https://..." oninput="updatePaper(${rIndex}, '${field}', this.value)">
+                                <a href="${hasValidLink ? linkValue : '#'}" target="_blank" class="link-btn ${hasValidLink ? '' : 'disabled'}" ${hasValidLink ? '' : 'onclick="event.preventDefault()"'}>
+                                    <i class="fas fa-external-link-alt"></i> 打开
+                                </a>
+                            </div>
+                        `;
+                    } else if (isArticleName) {
+                        cellContent = `<input type="text" class="article-title-input" value="${row[field] || ''}" placeholder="文章标题" oninput="updatePaper(${rIndex}, '${field}', this.value)">`;
+                    } else {
+                        cellContent = `<textarea class="cell-textarea" placeholder="${paperLabels[fIndex]}" oninput="updatePaper(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
+                    }
                     
                     return `
                         <div class="paper-cell ${isExpanded ? 'expanded' : ''}" style="width: ${columnWidths.papers[fIndex]}px; min-height: ${isExpanded ? 'auto' : '60px'};">
@@ -665,7 +729,7 @@
 
         function addPaperRow() {
             appData.papers.push({
-                link: '', field: '', advantages: '', innovation: '', io: '',
+                articleName: '', link: '', field: '', advantages: '', innovation: '', io: '',
                 modulesUsed: '', moduleUsage: '', scenario: '', cons: ''
             });
             saveData();
