@@ -29,27 +29,6 @@
             background: #a8a8a8; 
         }
 
-        .resizable-cell {
-            resize: both;
-            overflow: auto;
-            min-width: 150px;
-            min-height: 60px;
-            width: 100%;
-            height: 100%;
-            border: 1px solid transparent;
-            background: transparent;
-            font-family: inherit;
-            font-size: 0.9rem;
-            padding: 0.5rem;
-            transition: background 0.2s;
-        }
-        .resizable-cell:focus {
-            outline: none;
-            background: #fff;
-            border-color: #3b82f6;
-            border-radius: 4px;
-        }
-
         .tab-btn.active {
             background-color: #3b82f6;
             color: white;
@@ -250,15 +229,19 @@
             border-radius: 2px;
         }
 
-        .article-title-input {
+        .article-title-textarea {
             width: 100%;
-            padding: 0.5rem;
+            height: 100%;
+            min-height: 60px;
             border: none;
-            background: transparent;
+            padding: 0.5rem;
+            font-family: inherit;
             font-size: 0.9rem;
             font-weight: 500;
+            resize: vertical;
+            background: transparent;
         }
-        .article-title-input:focus {
+        .article-title-textarea:focus {
             outline: none;
             background: #eff6ff;
         }
@@ -452,7 +435,6 @@
             expandedStates = JSON.parse(savedStates);
         }
 
-        // Column width state
         let columnWidths = appData.columnWidths || defaultData.columnWidths;
 
         function saveData() {
@@ -485,14 +467,12 @@
 
             const results = [];
 
-            // Search modules
             appData.modules.forEach((item, index) => {
                 if ((item.title || '').toLowerCase().includes(query) || (item.content || '').toLowerCase().includes(query)) {
                     results.push({ type: '模块', title: item.title || '无标题', content: (item.content || '').substring(0, 100), tab: 'modules', index });
                 }
             });
 
-            // Search papers
             appData.papers.forEach((row, index) => {
                 const allText = Object.values(row).join(' ').toLowerCase();
                 if (allText.includes(query)) {
@@ -500,14 +480,12 @@
                 }
             });
 
-            // Search websites
             appData.websites.forEach((row, index) => {
                 if ((row.name || '').toLowerCase().includes(query) || (row.function || '').toLowerCase().includes(query)) {
                     results.push({ type: '网站', title: row.name || '无名称', content: (row.function || '').substring(0, 100), tab: 'websites', index });
                 }
             });
 
-            // Search ideas
             appData.ideas.forEach((item, index) => {
                 if ((item.content || '').toLowerCase().includes(query)) {
                     results.push({ type: '灵感', title: '灵感 #' + (index + 1), content: (item.content || '').substring(0, 100), tab: 'ideas', index });
@@ -648,7 +626,6 @@
         }
 
         function renderPapers() {
-            // Render Header
             const headerDiv = document.getElementById('paper-header');
             headerDiv.style.gridTemplateColumns = columnWidths.papers.map(w => `${w}px`).join(' ');
             headerDiv.innerHTML = paperLabels.map((label, i) => `
@@ -658,7 +635,6 @@
                 </div>
             `).join('');
 
-            // Render Rows
             const rowsDiv = document.getElementById('paper-rows');
             rowsDiv.innerHTML = '';
             
@@ -685,7 +661,7 @@
                             </div>
                         `;
                     } else if (isArticleName) {
-                        cellContent = `<input type="text" class="article-title-input" value="${row[field] || ''}" placeholder="文章标题" oninput="updatePaper(${rIndex}, '${field}', this.value)">`;
+                        cellContent = `<textarea class="article-title-textarea" placeholder="文章标题（支持回车换行）" oninput="updatePaper(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
                     } else {
                         cellContent = `<textarea class="cell-textarea" placeholder="${paperLabels[fIndex]}" oninput="updatePaper(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
                     }
@@ -698,7 +674,6 @@
                     `;
                 }).join('');
 
-                // Add expand toggle button
                 const toggleBtn = document.createElement('div');
                 toggleBtn.className = "absolute left-0 top-1/2 transform -translate-y-1/2 z-30";
                 toggleBtn.innerHTML = `
