@@ -245,6 +245,25 @@
             outline: none;
             background: #eff6ff;
         }
+
+        .importance-select {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 0.5rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: transparent;
+            cursor: pointer;
+        }
+        .importance-select:focus {
+            outline: none;
+            background: #eff6ff;
+        }
+
+        .importance-high { color: #dc2626; font-weight: 600; }
+        .importance-medium { color: #d97706; font-weight: 500; }
+        .importance-low { color: #6b7280; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -416,7 +435,7 @@
             websites: [],
             ideas: [],
             columnWidths: {
-                papers: [180, 200, 150, 150, 200, 150, 200, 150, 150, 150],
+                papers: [180, 180, 120, 130, 180, 130, 180, 130, 130, 130, 100],
                 websites: [250, 250, 200]
             }
         };
@@ -613,8 +632,8 @@
         }
 
         // --- Papers Logic ---
-        const paperFields = ['articleName', 'link', 'field', 'advantages', 'innovation', 'io', 'modulesUsed', 'moduleUsage', 'scenario', 'cons'];
-        const paperLabels = ['文章名称', '链接', '领域', '优势', '创新点 & 原因', '输入 / 输出', '使用模块 & 可复用性', '作为模块用途', '使用场景', '缺点 & 重要性'];
+        const paperFields = ['articleName', 'link', 'field', 'advantages', 'innovation', 'io', 'modulesUsed', 'moduleUsage', 'scenario', 'cons', 'importance'];
+        const paperLabels = ['文章名称', '链接', '领域', '优势', '创新点 & 原因', '输入 / 输出', '使用模块 & 可复用性', '作为模块用途', '使用场景', '缺点', '重要性'];
 
         function isValidUrl(string) {
             try {
@@ -623,6 +642,12 @@
             } catch (_) {
                 return false;
             }
+        }
+
+        function getImportanceClass(level) {
+            if (level === '高') return 'importance-high';
+            if (level === '中') return 'importance-medium';
+            return 'importance-low';
         }
 
         function renderPapers() {
@@ -647,6 +672,7 @@
                 rowDiv.innerHTML = paperFields.map((field, fIndex) => {
                     const isLink = field === 'link';
                     const isArticleName = field === 'articleName';
+                    const isImportance = field === 'importance';
                     
                     let cellContent = '';
                     if (isLink) {
@@ -662,6 +688,15 @@
                         `;
                     } else if (isArticleName) {
                         cellContent = `<textarea class="article-title-textarea" placeholder="文章标题（支持回车换行）" oninput="updatePaper(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
+                    } else if (isImportance) {
+                        const importanceValue = row[field] || '中';
+                        cellContent = `
+                            <select class="importance-select ${getImportanceClass(importanceValue)}" onchange="updatePaper(${rIndex}, '${field}', this.value)">
+                                <option value="高" ${importanceValue === '高' ? 'selected' : ''}>高</option>
+                                <option value="中" ${importanceValue === '中' ? 'selected' : ''}>中</option>
+                                <option value="低" ${importanceValue === '低' ? 'selected' : ''}>低</option>
+                            </select>
+                        `;
                     } else {
                         cellContent = `<textarea class="cell-textarea" placeholder="${paperLabels[fIndex]}" oninput="updatePaper(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
                     }
@@ -705,7 +740,7 @@
         function addPaperRow() {
             appData.papers.push({
                 articleName: '', link: '', field: '', advantages: '', innovation: '', io: '',
-                modulesUsed: '', moduleUsage: '', scenario: '', cons: ''
+                modulesUsed: '', moduleUsage: '', scenario: '', cons: '', importance: '中'
             });
             saveData();
             renderPapers();
