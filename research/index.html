@@ -276,6 +276,23 @@
         .table-container:hover .reset-width-btn {
             opacity: 1;
         }
+
+        .website-name-input {
+            width: 100%;
+            height: 100%;
+            min-height: 60px;
+            border: none;
+            padding: 0.5rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            resize: vertical;
+            background: transparent;
+        }
+        .website-name-input:focus {
+            outline: none;
+            background: #eff6ff;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -399,7 +416,7 @@
             <!-- Websites Section -->
             <div id="view-websites" class="view-section hidden fade-in h-full flex flex-col">
                 <div class="section-header flex justify-between items-center mb-2">
-                    <h2 class="text-lg font-semibold text-gray-700">好网站及功能记录</h2>
+                    <h2 class="text-lg font-semibold text-gray-700">好网站及功能记录（名称与链接分开，可一键打开）</h2>
                     <div class="flex space-x-2">
                         <button onclick="toggleAllWebsites(true)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
                             <i class="fas fa-chevron-down mr-1"></i> 全部展开
@@ -454,13 +471,13 @@
             ideas: [],
             columnWidths: {
                 papers: [180, 180, 120, 130, 180, 130, 180, 130, 130, 130, 100],
-                websites: [250, 250, 200]
+                websites: [200, 200, 250, 200]
             }
         };
 
         const defaultColumnWidths = {
             papers: [180, 180, 120, 130, 180, 130, 180, 130, 130, 130, 100],
-            websites: [250, 250, 200]
+            websites: [200, 200, 250, 200]
         };
 
         let expandedStates = {
@@ -796,8 +813,8 @@
         }
 
         // --- Websites Logic ---
-        const websiteFields = ['name', 'function', 'remark'];
-        const websiteLabels = ['网站名称 / 链接', '主要功能', '备注 / 评价'];
+        const websiteFields = ['name', 'link', 'function', 'remark'];
+        const websiteLabels = ['网站名称', '链接', '主要功能', '备注 / 评价'];
 
         function renderWebsites() {
             const headerDiv = document.getElementById('website-header');
@@ -818,12 +835,35 @@
                 rowDiv.className = `paper-row ${isExpanded ? 'expanded' : ''}`;
                 rowDiv.style.gridTemplateColumns = columnWidths.websites.map(w => `${w}px`).join(' ');
                 
-                rowDiv.innerHTML = websiteFields.map((field, fIndex) => `
-                    <div class="paper-cell ${isExpanded ? 'expanded' : ''}" style="width: ${columnWidths.websites[fIndex]}px; min-height: ${isExpanded ? 'auto' : '60px'};">
-                        <textarea class="cell-textarea" placeholder="${websiteLabels[fIndex]}" oninput="updateWebsite(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>
-                        ${fIndex === 0 ? `<button onclick="deleteWebsite(${rIndex})" class="delete-row-btn bg-red-100 text-red-600 rounded p-1 hover:bg-red-200"><i class="fas fa-trash-alt"></i></button>` : ''}
-                    </div>
-                `).join('');
+                rowDiv.innerHTML = websiteFields.map((field, fIndex) => {
+                    const isLink = field === 'link';
+                    const isName = field === 'name';
+                    
+                    let cellContent = '';
+                    if (isLink) {
+                        const linkValue = row[field] || '';
+                        const hasValidLink = isValidUrl(linkValue);
+                        cellContent = `
+                            <div class="link-display">
+                                <input type="text" class="link-input flex-1" value="${linkValue}" placeholder="https://..." oninput="updateWebsite(${rIndex}, '${field}', this.value)">
+                                <a href="${hasValidLink ? linkValue : '#'}" target="_blank" class="link-btn ${hasValidLink ? '' : 'disabled'}" ${hasValidLink ? '' : 'onclick="event.preventDefault()"'}>
+                                    <i class="fas fa-external-link-alt"></i> 打开
+                                </a>
+                            </div>
+                        `;
+                    } else if (isName) {
+                        cellContent = `<textarea class="website-name-input" placeholder="网站/工具名称" oninput="updateWebsite(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
+                    } else {
+                        cellContent = `<textarea class="cell-textarea" placeholder="${websiteLabels[fIndex]}" oninput="updateWebsite(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
+                    }
+                    
+                    return `
+                        <div class="paper-cell ${isExpanded ? 'expanded' : ''}" style="width: ${columnWidths.websites[fIndex]}px; min-height: ${isExpanded ? 'auto' : '60px'};">
+                            ${cellContent}
+                            ${fIndex === 0 ? `<button onclick="deleteWebsite(${rIndex})" class="delete-row-btn bg-red-100 text-red-600 rounded p-1 hover:bg-red-200"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                    `;
+                }).join('');
 
                 const toggleBtn = document.createElement('div');
                 toggleBtn.className = "absolute left-0 top-1/2 transform -translate-y-1/2 z-30";
@@ -860,7 +900,7 @@
         }
 
         function addWebsiteRow() {
-            appData.websites.push({ name: '', function: '', remark: '' });
+            appData.websites.push({ name: '', link: '', function: '', remark: '' });
             saveData();
             renderWebsites();
         }
