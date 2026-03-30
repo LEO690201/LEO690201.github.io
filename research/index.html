@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科研助手 - Research Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.fontsource.org/roboto');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8; 
+        }
+
+        .resizable-cell {
+            resize: both;
+            overflow: auto;
+            min-width: 150px;
+            min-height: 60px;
+            width: 100%;
+            height: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            transition: background 0.2s;
+        }
+        .resizable-cell:focus {
+            outline: none;
+            background: #fff;
+            border-color: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .tab-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Expand/Collapse Styles */
+        .card-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease;
+            opacity: 0;
+        }
+        .card-content.expanded {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        
+        .expand-btn {
+            transition: transform 0.3s ease;
+        }
+        .expand-btn.rotated {
+            transform: rotate(180deg);
+        }
+
+        .collapsed-preview {
+            display: block;
+        }
+        .collapsed-preview.hidden {
+            display: none;
+        }
+
+        .research-card {
+            transition: all 0.3s ease;
+        }
+        .research-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .bulk-control {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .section-header:hover .bulk-control {
+            opacity: 1;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+        }
+        .search-input {
+            padding-left: 2.5rem;
+        }
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        /* Resizable Table Columns */
+        .paper-row {
+            display: grid;
+            gap: 1px;
+            background-color: #e5e7eb;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1px;
+        }
+        
+        .paper-cell {
+            background-color: white;
+            padding: 0;
+            position: relative;
+            min-height: 60px;
+            overflow: hidden;
+        }
+
+        .paper-cell.expanded {
+            min-height: auto;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            background-color: transparent;
+            z-index: 10;
+        }
+        .resize-handle:hover {
+            background-color: #3b82f6;
+        }
+
+        .cell-textarea {
+            width: 100%;
+            height: 100%;
+            min-height: 60px;
+            border: none;
+            padding: 0.5rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+            background: transparent;
+        }
+        .cell-textarea:focus {
+            outline: none;
+            background: #f9fafb;
+        }
+
+        .paper-header {
+            display: grid;
+            gap: 1px;
+            background-color: #e5e7eb;
+            margin-bottom: 1px;
+        }
+
+        .header-cell {
+            background-color: #4b5563;
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            position: relative;
+        }
+
+        .link-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            background: transparent;
+            font-size: 0.9rem;
+        }
+        .link-input:focus {
+            outline: none;
+            background: #eff6ff;
+        }
+
+        .delete-row-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+        .paper-cell:hover .delete-row-btn {
+            opacity: 1;
+        }
+
+        /* Search Results Highlight */
+        .highlight {
+            background-color: #fef3c7;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm z-20">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-flask text-blue-600 text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-800">科研助手 <span class="text-sm font-normal text-gray-500 ml-2">Research Tracker</span></h1>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="exportData()" class="px-3 py-2 bg-green-50 text-green-600 rounded hover:bg-green-100 transition text-sm font-medium">
+                    <i class="fas fa-download mr-1"></i> 导出数据
+                </button>
+                <label class="px-3 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition text-sm font-medium cursor-pointer">
+                    <i class="fas fa-upload mr-1"></i> 导入数据
+                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(this)">
+                </label>
+                <button onclick="clearData()" class="px-3 py-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition text-sm font-medium">
+                    <i class="fas fa-trash mr-1"></i> 清空
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="bg-white border-b border-gray-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto">
+            <div class="search-container relative">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-input w-full max-w-2xl px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
+                    placeholder="搜索所有记录（模块、论文、网站、灵感）..." oninput="searchAll()">
+                <button onclick="clearSearch()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="searchResults" class="hidden mt-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-semibold text-yellow-800"><i class="fas fa-search mr-2"></i>搜索结果</span>
+                    <button onclick="clearSearch()" class="text-yellow-600 hover:text-yellow-800 text-sm">清除搜索</button>
+                </div>
+                <div id="searchResultsContent" class="space-y-2 max-h-60 overflow-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex space-x-8">
+                <button onclick="switchTab('modules')" id="tab-modules" class="tab-btn active py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 transition">
+                    <i class="fas fa-puzzle-piece mr-2"></i>有趣模块/方案
+                </button>
+                <button onclick="switchTab('papers')" id="tab-papers" class="tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 transition">
+                    <i class="fas fa-file-alt mr-2"></i>论文记录
+                </button>
+                <button onclick="switchTab('websites')" id="tab-websites" class="tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 transition">
+                    <i class="fas fa-globe mr-2"></i>好网站/工具
+                </button>
+                <button onclick="switchTab('ideas')" id="tab-ideas" class="tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 transition">
+                    <i class="fas fa-lightbulb mr-2"></i>灵感 Idea
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto p-4 relative">
+        <div class="max-w-7xl mx-auto h-full">
+            
+            <!-- Modules Section -->
+            <div id="view-modules" class="view-section fade-in h-full">
+                <div class="section-header flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-700">未来可用的模块与方案</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="toggleAllModules(true)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-down mr-1"></i> 全部展开
+                        </button>
+                        <button onclick="toggleAllModules(false)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-up mr-1"></i> 全部收起
+                        </button>
+                        <button onclick="addModule()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-1"></i> 添加模块
+                        </button>
+                    </div>
+                </div>
+                <div id="modules-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
+                </div>
+            </div>
+
+            <!-- Papers Section -->
+            <div id="view-papers" class="view-section hidden fade-in h-full flex flex-col">
+                <div class="section-header flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-semibold text-gray-700">论文阅读记录表（每行可展开/收起，列宽可拖动）</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="toggleAllPapers(true)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-down mr-1"></i> 全部展开
+                        </button>
+                        <button onclick="toggleAllPapers(false)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-up mr-1"></i> 全部收起
+                        </button>
+                        <button onclick="addPaperRow()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-1"></i> 添加新文章
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-auto bg-white rounded-lg shadow border border-gray-200 p-2">
+                    <div id="papers-container">
+                        <!-- Paper Header -->
+                        <div id="paper-header" class="paper-header"></div>
+                        <!-- Paper Rows -->
+                        <div id="paper-rows"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Websites Section -->
+            <div id="view-websites" class="view-section hidden fade-in h-full flex flex-col">
+                <div class="section-header flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-semibold text-gray-700">好网站及功能记录</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="toggleAllWebsites(true)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-down mr-1"></i> 全部展开
+                        </button>
+                        <button onclick="toggleAllWebsites(false)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-up mr-1"></i> 全部收起
+                        </button>
+                        <button onclick="addWebsiteRow()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-1"></i> 添加网站
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-auto bg-white rounded-lg shadow border border-gray-200 p-2">
+                    <div id="websites-container">
+                        <div id="website-header" class="paper-header"></div>
+                        <div id="website-rows"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ideas Section -->
+            <div id="view-ideas" class="view-section hidden fade-in h-full">
+                <div class="section-header flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-700">灵感池 (Idea Pool)</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="toggleAllIdeas(true)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-down mr-1"></i> 全部展开
+                        </button>
+                        <button onclick="toggleAllIdeas(false)" class="bulk-control px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-chevron-up mr-1"></i> 全部收起
+                        </button>
+                        <button onclick="addIdea()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-1"></i> 记录灵感
+                        </button>
+                    </div>
+                </div>
+                <div id="ideas-container" class="space-y-4 pb-20">
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const defaultData = {
+            modules: [],
+            papers: [],
+            websites: [],
+            ideas: [],
+            columnWidths: {
+                papers: [150, 150, 200, 150, 200, 150, 150, 150],
+                websites: [250, 250, 200]
+            }
+        };
+
+        let expandedStates = {
+            modules: {},
+            ideas: {},
+            papers: {},
+            websites: {}
+        };
+
+        let appData = JSON.parse(localStorage.getItem('researchTrackerData')) || JSON.parse(JSON.stringify(defaultData));
+        
+        const savedStates = localStorage.getItem('researchTrackerExpanded');
+        if (savedStates) {
+            expandedStates = JSON.parse(savedStates);
+        }
+
+        // Column width state
+        let columnWidths = appData.columnWidths || defaultData.columnWidths;
+
+        function saveData() {
+            appData.columnWidths = columnWidths;
+            localStorage.setItem('researchTrackerData', JSON.stringify(appData));
+        }
+
+        function saveExpandedStates() {
+            localStorage.setItem('researchTrackerExpanded', JSON.stringify(expandedStates));
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            clearSearch();
+        }
+
+        // --- Search Function ---
+        function searchAll() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('searchResults');
+            const resultsContent = document.getElementById('searchResultsContent');
+            
+            if (query.length < 2) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            const results = [];
+
+            // Search modules
+            appData.modules.forEach((item, index) => {
+                if ((item.title || '').toLowerCase().includes(query) || (item.content || '').toLowerCase().includes(query)) {
+                    results.push({ type: '模块', title: item.title || '无标题', content: (item.content || '').substring(0, 100), tab: 'modules', index });
+                }
+            });
+
+            // Search papers
+            appData.papers.forEach((row, index) => {
+                const allText = Object.values(row).join(' ').toLowerCase();
+                if (allText.includes(query)) {
+                    results.push({ type: '论文', title: row.field || '无领域', content: (row.innovation || '').substring(0, 100), tab: 'papers', index });
+                }
+            });
+
+            // Search websites
+            appData.websites.forEach((row, index) => {
+                if ((row.name || '').toLowerCase().includes(query) || (row.function || '').toLowerCase().includes(query)) {
+                    results.push({ type: '网站', title: row.name || '无名称', content: (row.function || '').substring(0, 100), tab: 'websites', index });
+                }
+            });
+
+            // Search ideas
+            appData.ideas.forEach((item, index) => {
+                if ((item.content || '').toLowerCase().includes(query)) {
+                    results.push({ type: '灵感', title: '灵感 #' + (index + 1), content: (item.content || '').substring(0, 100), tab: 'ideas', index });
+                }
+            });
+
+            if (results.length > 0) {
+                resultsDiv.classList.remove('hidden');
+                resultsContent.innerHTML = results.map(r => `
+                    <div class="p-2 bg-white rounded border border-gray-200 hover:border-blue-300 cursor-pointer transition" onclick="switchTab('${r.tab}')">
+                        <span class="inline-block px-2 py-0.5 text-xs rounded ${getTypeColor(r.type)} text-white mr-2">${r.type}</span>
+                        <span class="font-medium text-gray-800">${highlightMatch(r.title, query)}</span>
+                        <p class="text-sm text-gray-500 mt-1">${highlightMatch(r.content, query)}...</p>
+                    </div>
+                `).join('');
+            } else {
+                resultsDiv.classList.remove('hidden');
+                resultsContent.innerHTML = '<p class="text-gray-500 text-center py-4">未找到匹配的记录</p>';
+            }
+        }
+
+        function getTypeColor(type) {
+            const colors = { '模块': 'bg-blue-500', '论文': 'bg-green-500', '网站': 'bg-purple-500', '灵感': 'bg-yellow-500' };
+            return colors[type] || 'bg-gray-500';
+        }
+
+        function highlightMatch(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').classList.add('hidden');
+        }
+
+        // --- Modules Logic ---
+        function renderModules() {
+            const container = document.getElementById('modules-container');
+            container.innerHTML = '';
+            appData.modules.forEach((item, index) => {
+                const isExpanded = expandedStates.modules[index] || false;
+                const previewText = (item.content || '').substring(0, 100);
+                const hasMore = (item.content || '').length > 100;
+                
+                const card = document.createElement('div');
+                card.className = "research-card bg-white rounded-lg shadow border border-gray-200 flex flex-col overflow-hidden";
+                card.innerHTML = `
+                    <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                        <div class="flex justify-between items-start">
+                            <input type="text" value="${item.title || ''}" placeholder="模块名称" 
+                                class="font-bold text-gray-800 bg-transparent border-b border-transparent focus:border-blue-500 focus:outline-none w-full mr-2 text-lg" 
+                                oninput="updateModule(${index}, 'title', this.value)">
+                            <div class="flex items-center space-x-2">
+                                <button onclick="toggleModule(${index})" class="expand-btn ${isExpanded ? 'rotated' : ''} text-gray-400 hover:text-blue-600 transition p-1">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <button onclick="deleteModule(${index})" class="text-gray-400 hover:text-red-500 transition p-1">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="collapsed-preview ${isExpanded ? 'hidden' : ''} mt-2">
+                            <p class="text-sm text-gray-500 line-clamp-2">${previewText || '暂无内容...'}</p>
+                            ${hasMore ? '<span class="text-xs text-blue-500">... 点击展开查看更多</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="card-content ${isExpanded ? 'expanded' : ''}">
+                        <div class="p-4">
+                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">详细内容</label>
+                            <textarea class="w-full mt-2 bg-gray-50 rounded-lg p-3 text-sm text-gray-600 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none resize-y min-h-[150px]" 
+                                placeholder="描述方案细节、来源、为何有趣..." 
+                                oninput="updateModule(${index}, 'content', this.value)">${item.content || ''}</textarea>
+                        </div>
+                        <div class="px-4 pb-3 flex justify-between items-center text-xs text-gray-400">
+                            <span>最后编辑：${item.lastEdit ? new Date(item.lastEdit).toLocaleDateString() : '新建'}</span>
+                            <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">${(item.content || '').length} 字</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleModule(index) {
+            expandedStates.modules[index] = !expandedStates.modules[index];
+            saveExpandedStates();
+            renderModules();
+        }
+
+        function toggleAllModules(expand) {
+            appData.modules.forEach((_, index) => {
+                expandedStates.modules[index] = expand;
+            });
+            saveExpandedStates();
+            renderModules();
+        }
+
+        function addModule() {
+            appData.modules.push({ title: '新模块', content: '', lastEdit: Date.now() });
+            saveData();
+            renderModules();
+        }
+
+        function updateModule(index, field, value) {
+            appData.modules[index][field] = value;
+            appData.modules[index].lastEdit = Date.now();
+            saveData();
+        }
+
+        function deleteModule(index) {
+            if(confirm('确定删除这个模块吗？')) {
+                appData.modules.splice(index, 1);
+                const newStates = {};
+                Object.keys(expandedStates.modules).forEach(key => {
+                    if (parseInt(key) < index) newStates[key] = expandedStates.modules[key];
+                    else if (parseInt(key) > index) newStates[parseInt(key) - 1] = expandedStates.modules[key];
+                });
+                expandedStates.modules = newStates;
+                saveData();
+                saveExpandedStates();
+                renderModules();
+            }
+        }
+
+        // --- Papers Logic ---
+        const paperFields = ['link', 'field', 'advantages', 'innovation', 'io', 'modulesUsed', 'moduleUsage', 'scenario', 'cons'];
+        const paperLabels = ['链接', '领域', '优势', '创新点 & 原因', '输入 / 输出', '使用模块 & 可复用性', '作为模块用途', '使用场景', '缺点 & 重要性'];
+
+        function renderPapers() {
+            // Render Header
+            const headerDiv = document.getElementById('paper-header');
+            headerDiv.style.gridTemplateColumns = columnWidths.papers.map(w => `${w}px`).join(' ');
+            headerDiv.innerHTML = paperLabels.map((label, i) => `
+                <div class="header-cell" style="width: ${columnWidths.papers[i]}px;">
+                    ${label}
+                    <div class="resize-handle" onmousedown="startResize(event, 'papers', ${i})"></div>
+                </div>
+            `).join('');
+
+            // Render Rows
+            const rowsDiv = document.getElementById('paper-rows');
+            rowsDiv.innerHTML = '';
+            
+            appData.papers.forEach((row, rIndex) => {
+                const isExpanded = expandedStates.papers[rIndex] !== false;
+                const rowDiv = document.createElement('div');
+                rowDiv.className = `paper-row ${isExpanded ? 'expanded' : ''}`;
+                rowDiv.style.gridTemplateColumns = columnWidths.papers.map(w => `${w}px`).join(' ');
+                
+                rowDiv.innerHTML = paperFields.map((field, fIndex) => {
+                    const isLink = field === 'link';
+                    const cellContent = isLink 
+                        ? `<input type="text" class="link-input" value="${row[field] || ''}" placeholder="https://..." oninput="updatePaper(${rIndex}, '${field}', this.value)">`
+                        : `<textarea class="cell-textarea" placeholder="${paperLabels[fIndex]}" oninput="updatePaper(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>`;
+                    
+                    return `
+                        <div class="paper-cell ${isExpanded ? 'expanded' : ''}" style="width: ${columnWidths.papers[fIndex]}px; min-height: ${isExpanded ? 'auto' : '60px'};">
+                            ${cellContent}
+                            ${fIndex === 0 ? `<button onclick="deletePaper(${rIndex})" class="delete-row-btn bg-red-100 text-red-600 rounded p-1 hover:bg-red-200"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                // Add expand toggle button
+                const toggleBtn = document.createElement('div');
+                toggleBtn.className = "absolute left-0 top-1/2 transform -translate-y-1/2 z-30";
+                toggleBtn.innerHTML = `
+                    <button onclick="togglePaper(${rIndex})" class="expand-btn ${isExpanded ? 'rotated' : ''} bg-gray-100 text-gray-600 rounded-l px-2 py-1 hover:bg-gray-200 transition">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                `;
+                rowDiv.style.position = 'relative';
+                rowDiv.insertBefore(toggleBtn, rowDiv.firstChild);
+                
+                rowsDiv.appendChild(rowDiv);
+            });
+        }
+
+        function togglePaper(index) {
+            expandedStates.papers[index] = expandedStates.papers[index] === false;
+            saveExpandedStates();
+            renderPapers();
+        }
+
+        function toggleAllPapers(expand) {
+            appData.papers.forEach((_, index) => {
+                expandedStates.papers[index] = expand;
+            });
+            saveExpandedStates();
+            renderPapers();
+        }
+
+        function addPaperRow() {
+            appData.papers.push({
+                link: '', field: '', advantages: '', innovation: '', io: '',
+                modulesUsed: '', moduleUsage: '', scenario: '', cons: ''
+            });
+            saveData();
+            renderPapers();
+        }
+
+        function updatePaper(rIndex, field, value) {
+            appData.papers[rIndex][field] = value;
+            saveData();
+        }
+
+        function deletePaper(index) {
+            if(confirm('确定删除这篇论文记录吗？')) {
+                appData.papers.splice(index, 1);
+                const newStates = {};
+                Object.keys(expandedStates.papers).forEach(key => {
+                    if (parseInt(key) < index) newStates[key] = expandedStates.papers[key];
+                    else if (parseInt(key) > index) newStates[parseInt(key) - 1] = expandedStates.papers[key];
+                });
+                expandedStates.papers = newStates;
+                saveData();
+                saveExpandedStates();
+                renderPapers();
+            }
+        }
+
+        // Column Resize
+        let resizing = false;
+        let resizeType = '';
+        let resizeIndex = 0;
+        let startX = 0;
+        let startWidth = 0;
+
+        function startResize(e, type, index) {
+            resizing = true;
+            resizeType = type;
+            resizeIndex = index;
+            startX = e.pageX;
+            startWidth = columnWidths[type][index];
+            document.addEventListener('mousemove', doResize);
+            document.addEventListener('mouseup', stopResize);
+            e.preventDefault();
+        }
+
+        function doResize(e) {
+            if (!resizing) return;
+            const diff = e.pageX - startX;
+            const newWidth = Math.max(100, startWidth + diff);
+            columnWidths[resizeType][resizeIndex] = newWidth;
+            if (resizeType === 'papers') renderPapers();
+            else if (resizeType === 'websites') renderWebsites();
+        }
+
+        function stopResize() {
+            resizing = false;
+            document.removeEventListener('mousemove', doResize);
+            document.removeEventListener('mouseup', stopResize);
+            saveData();
+        }
+
+        // --- Websites Logic ---
+        const websiteFields = ['name', 'function', 'remark'];
+        const websiteLabels = ['网站名称 / 链接', '主要功能', '备注 / 评价'];
+
+        function renderWebsites() {
+            const headerDiv = document.getElementById('website-header');
+            headerDiv.style.gridTemplateColumns = columnWidths.websites.map(w => `${w}px`).join(' ');
+            headerDiv.innerHTML = websiteLabels.map((label, i) => `
+                <div class="header-cell" style="width: ${columnWidths.websites[i]}px;">
+                    ${label}
+                    <div class="resize-handle" onmousedown="startResize(event, 'websites', ${i})"></div>
+                </div>
+            `).join('');
+
+            const rowsDiv = document.getElementById('website-rows');
+            rowsDiv.innerHTML = '';
+            
+            appData.websites.forEach((row, rIndex) => {
+                const isExpanded = expandedStates.websites[rIndex] !== false;
+                const rowDiv = document.createElement('div');
+                rowDiv.className = `paper-row ${isExpanded ? 'expanded' : ''}`;
+                rowDiv.style.gridTemplateColumns = columnWidths.websites.map(w => `${w}px`).join(' ');
+                
+                rowDiv.innerHTML = websiteFields.map((field, fIndex) => `
+                    <div class="paper-cell ${isExpanded ? 'expanded' : ''}" style="width: ${columnWidths.websites[fIndex]}px; min-height: ${isExpanded ? 'auto' : '60px'};">
+                        <textarea class="cell-textarea" placeholder="${websiteLabels[fIndex]}" oninput="updateWebsite(${rIndex}, '${field}', this.value)">${row[field] || ''}</textarea>
+                        ${fIndex === 0 ? `<button onclick="deleteWebsite(${rIndex})" class="delete-row-btn bg-red-100 text-red-600 rounded p-1 hover:bg-red-200"><i class="fas fa-trash-alt"></i></button>` : ''}
+                    </div>
+                `).join('');
+
+                const toggleBtn = document.createElement('div');
+                toggleBtn.className = "absolute left-0 top-1/2 transform -translate-y-1/2 z-30";
+                toggleBtn.innerHTML = `
+                    <button onclick="toggleWebsite(${rIndex})" class="expand-btn ${isExpanded ? 'rotated' : ''} bg-gray-100 text-gray-600 rounded-l px-2 py-1 hover:bg-gray-200 transition">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                `;
+                rowDiv.style.position = 'relative';
+                rowDiv.insertBefore(toggleBtn, rowDiv.firstChild);
+                
+                rowsDiv.appendChild(rowDiv);
+            });
+        }
+
+        function toggleWebsite(index) {
+            expandedStates.websites[index] = expandedStates.websites[index] === false;
+            saveExpandedStates();
+            renderWebsites();
+        }
+
+        function toggleAllWebsites(expand) {
+            appData.websites.forEach((_, index) => {
+                expandedStates.websites[index] = expand;
+            });
+            saveExpandedStates();
+            renderWebsites();
+        }
+
+        function addWebsiteRow() {
+            appData.websites.push({ name: '', function: '', remark: '' });
+            saveData();
+            renderWebsites();
+        }
+
+        function updateWebsite(rIndex, field, value) {
+            appData.websites[rIndex][field] = value;
+            saveData();
+        }
+
+        function deleteWebsite(index) {
+            if(confirm('确定删除这个网站记录吗？')) {
+                appData.websites.splice(index, 1);
+                const newStates = {};
+                Object.keys(expandedStates.websites).forEach(key => {
+                    if (parseInt(key) < index) newStates[key] = expandedStates.websites[key];
+                    else if (parseInt(key) > index) newStates[parseInt(key) - 1] = expandedStates.websites[key];
+                });
+                expandedStates.websites = newStates;
+                saveData();
+                saveExpandedStates();
+                renderWebsites();
+            }
+        }
+
+        // --- Ideas Logic ---
+        function renderIdeas() {
+            const container = document.getElementById('ideas-container');
+            container.innerHTML = '';
+            [...appData.ideas].reverse().forEach((item, reverseIndex) => {
+                const originalIndex = appData.ideas.length - 1 - reverseIndex;
+                const isExpanded = expandedStates.ideas[originalIndex] || false;
+                const previewText = (item.content || '').substring(0, 150);
+                const hasMore = (item.content || '').length > 150;
+                
+                const card = document.createElement('div');
+                card.className = "research-card bg-white rounded-lg shadow border-l-4 border-yellow-400 overflow-hidden";
+                card.innerHTML = `
+                    <div class="p-4 bg-gradient-to-r from-yellow-50 to-white">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1 mr-4 cursor-pointer" onclick="toggleIdea(${originalIndex})">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-lightbulb text-yellow-500"></i>
+                                    <span class="text-xs text-gray-400">${new Date(item.timestamp).toLocaleString()}</span>
+                                </div>
+                                <p class="text-gray-700 ${isExpanded ? '' : 'line-clamp-2'}">${item.content || '点击添加灵感内容...'}</p>
+                                ${!isExpanded && hasMore ? '<span class="text-xs text-blue-500 mt-1 inline-block">... 点击展开</span>' : ''}
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="toggleIdea(${originalIndex})" class="expand-btn ${isExpanded ? 'rotated' : ''} text-gray-400 hover:text-yellow-600 transition p-1">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <button onclick="deleteIdea(${originalIndex})" class="text-gray-300 hover:text-red-500 transition p-1">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content ${isExpanded ? 'expanded' : ''}">
+                        <div class="p-4 pt-0">
+                            <textarea class="w-full bg-yellow-50 rounded-lg p-3 text-gray-700 focus:bg-white focus:ring-2 focus:ring-yellow-500 focus:outline-none resize-y min-h-[100px] mt-2" 
+                                placeholder="详细记录你的灵感..." 
+                                onclick="event.stopPropagation()"
+                                oninput="updateIdea(${originalIndex}, this.value)">${item.content || ''}</textarea>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleIdea(index) {
+            expandedStates.ideas[index] = !expandedStates.ideas[index];
+            saveExpandedStates();
+            renderIdeas();
+        }
+
+        function toggleAllIdeas(expand) {
+            appData.ideas.forEach((_, index) => {
+                expandedStates.ideas[index] = expand;
+            });
+            saveExpandedStates();
+            renderIdeas();
+        }
+
+        function addIdea() {
+            appData.ideas.push({ content: '', timestamp: Date.now() });
+            saveData();
+            renderIdeas();
+        }
+
+        function updateIdea(index, value) {
+            appData.ideas[index].content = value;
+            saveData();
+        }
+
+        function deleteIdea(index) {
+            appData.ideas.splice(index, 1);
+            const newStates = {};
+            Object.keys(expandedStates.ideas).forEach(key => {
+                if (parseInt(key) < index) newStates[key] = expandedStates.ideas[key];
+                else if (parseInt(key) > index) newStates[parseInt(key) - 1] = expandedStates.ideas[key];
+            });
+            expandedStates.ideas = newStates;
+            saveData();
+            saveExpandedStates();
+            renderIdeas();
+        }
+
+        // --- Import / Export ---
+        function exportData() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `research_backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (json.modules && json.papers && json.websites && json.ideas) {
+                        if(confirm('导入将覆盖当前本地数据，确定继续吗？')) {
+                            appData = json;
+                            columnWidths = appData.columnWidths || defaultData.columnWidths;
+                            saveData();
+                            refreshAll();
+                            alert('导入成功！');
+                        }
+                    } else {
+                        alert('文件格式不正确，缺少必要字段。');
+                    }
+                } catch (err) {
+                    alert('文件解析失败，请确保是有效的 JSON 文件。');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        function clearData() {
+            if(confirm('警告：这将清空所有本地数据且无法撤销（除非你有备份）。确定吗？')) {
+                appData = JSON.parse(JSON.stringify(defaultData));
+                columnWidths = JSON.parse(JSON.stringify(defaultData.columnWidths));
+                expandedStates = { modules: {}, ideas: {}, papers: {}, websites: {} };
+                saveData();
+                saveExpandedStates();
+                refreshAll();
+            }
+        }
+
+        function refreshAll() {
+            renderModules();
+            renderPapers();
+            renderWebsites();
+            renderIdeas();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshAll();
+        });
+    </script>
+</body>
+</html>
+
