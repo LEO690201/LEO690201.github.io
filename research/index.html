@@ -297,7 +297,6 @@
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <!-- Header -->
     <header class="bg-white shadow-sm z-20">
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -319,7 +318,6 @@
         </div>
     </header>
 
-    <!-- Search Bar -->
     <div class="bg-white border-b border-gray-200 px-4 py-3">
         <div class="max-w-7xl mx-auto">
             <div class="search-container relative">
@@ -340,7 +338,6 @@
         </div>
     </div>
 
-    <!-- Navigation -->
     <nav class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex space-x-8">
@@ -360,11 +357,9 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="flex-1 overflow-auto p-4 relative">
         <div class="max-w-7xl mx-auto h-full">
             
-            <!-- Modules Section -->
             <div id="view-modules" class="view-section fade-in h-full">
                 <div class="section-header flex justify-between items-center mb-4">
                     <h2 class="text-lg font-semibold text-gray-700">未来可用的模块与方案</h2>
@@ -384,7 +379,6 @@
                 </div>
             </div>
 
-            <!-- Papers Section -->
             <div id="view-papers" class="view-section hidden fade-in h-full flex flex-col">
                 <div class="section-header flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">论文阅读记录表（每行可展开/收起，列宽可拖动）</h2>
@@ -405,15 +399,12 @@
                 </div>
                 <div class="flex-1 overflow-auto bg-white rounded-lg shadow border border-gray-200 p-2 table-container">
                     <div id="papers-container">
-                        <!-- Paper Header -->
                         <div id="paper-header" class="paper-header"></div>
-                        <!-- Paper Rows -->
                         <div id="paper-rows"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Websites Section -->
             <div id="view-websites" class="view-section hidden fade-in h-full flex flex-col">
                 <div class="section-header flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">好网站及功能记录（名称与链接分开，可一键打开）</h2>
@@ -440,7 +431,6 @@
                 </div>
             </div>
 
-            <!-- Ideas Section -->
             <div id="view-ideas" class="view-section hidden fade-in h-full">
                 <div class="section-header flex justify-between items-center mb-4">
                     <h2 class="text-lg font-semibold text-gray-700">灵感池 (Idea Pool)</h2>
@@ -672,8 +662,8 @@
         }
 
         // --- Papers Logic ---
-        const paperFields = ['articleName', 'link', 'field', 'advantages', 'innovation', 'io', 'modulesUsed', 'moduleUsage', 'scenario', 'cons', 'importance'];
-        const paperLabels = ['文章名称', '链接', '领域', '优势', '创新点 & 原因', '输入 / 输出', '使用模块 & 可复用性', '作为模块用途', '使用场景', '缺点', '重要性'];
+        const paperFields = ['link', 'articleName', 'field', 'advantages', 'innovation', 'io', 'modulesUsed', 'moduleUsage', 'scenario', 'cons', 'importance'];
+        const paperLabels = ['链接', '文章名称', '领域', '优势', '创新点 & 原因', '输入 / 输出', '使用模块 & 可复用性', '作为模块用途', '使用场景', '缺点', '重要性'];
 
         function isValidUrl(string) {
             try {
@@ -1107,4 +1097,3 @@
     </script>
 </body>
 </html>
-
