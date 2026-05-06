@@ -4,19 +4,54 @@
 
 // Typography
 
+html {
+  font-family: $font-family-base;
+  font-size: 16px;
+}
+
+body {
+  font-family: $font-family-base;
+  font-feature-settings: "kern" 1, "liga" 1;
+  line-height: 1.68;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
 em,
 div,
 li,
 span,
 strong {
   color: var(--global-text-color);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.navbar-brand,
+.post-title,
+.card-title {
+  color: var(--global-text-color);
+  font-family: $font-family-heading;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+p,
+li {
+  letter-spacing: 0;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: $font-family-mono;
 }
 
 hr {
@@ -198,7 +233,7 @@ ul.task-list input[type="checkbox"] {
   .more-info {
     margin-bottom: 5px;
     margin-top: 5px;
-    font-family: monospace;
+    font-family: $font-family-base;
 
     p {
       display: inline-block;
