@@ -3,9 +3,9 @@ layout: cv
 permalink: /cv/
 title: cv
 nav: true
-nav_order: 4
+nav_order: 3
 cv_pdf:
-description: Curriculum vitae. Update _data/cv.yml with your academic information.
+description: A concise academic CV.
 toc:
   sidebar: left
 ---

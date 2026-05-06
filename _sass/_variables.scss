@@ -18,7 +18,7 @@ $green-color-lime: #b7d12a !default;
 $green-color-dark: #009f06 !default;
 $green-color-light: #ddffdd !default;
 $green-color-bright: #11d68b !default;
-$purple-color: #b509ac !default;
+$purple-color: #d97757 !default;
 $light-purple-color: color.adjust($purple-color, $lightness: 25%);
 $pink-color: #f92080 !default;
 $pink-color-light: #ffdddd !default;
@@ -31,6 +31,9 @@ $grey-900: #212529;
 
 $white-color: #ffffff !default;
 $black-color: #000000 !default;
+$warm-bg-color: #f5efe4 !default;
+$warm-card-bg-color: #fffaf2 !default;
+$warm-footer-bg-color: #3d332b !default;
 
 // Theme colors
 

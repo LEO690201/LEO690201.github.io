@@ -27,22 +27,3 @@ I have been fortunate to stay in close contact with Prof. [Juyong Zhang](https:/
 
 Outside research and coursework, I spend a lot of time in sports, especially **track and field** and **basketball**.
 I like the way athletic training keeps life concrete: progress is measured honestly, and small improvements accumulate.
-
-You can also find me here:
-
-- [GitHub](https://github.com/LEO690201)
-- [ORCID](https://orcid.org/0009-0001-7276-3416)
-- [Zhihu](https://www.zhihu.com/people/leo-17-42-83)
-- [Bilibili](https://space.bilibili.com/3546380654086848)
-- [Xiaohongshu](https://www.xiaohongshu.com/user/profile/66c1fd58000000001d032b10)
-- [X](https://x.com/GuangliH67471)
-- [Facebook](https://www.facebook.com/profile.php?id=61576421429502)
-- [YouTube](https://www.youtube.com/@Guanglihu-i7s)
-- [TikTok](https://www.tiktok.com/@guanglihu5?lang=zh-Hans)
-
-Some preserved pages from my previous personal site remain available:
-
-- [Research records](/research/)
-- [Calendar](/calendar/)
-- [Beat_XueYeYe](/beat_xyy/)
-- [Beat_YangJingYuan](/beat_yjy/)

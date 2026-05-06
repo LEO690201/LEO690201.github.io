@@ -383,9 +383,21 @@ ul.task-list input[type="checkbox"] {
   text-align: center;
 
   .contact-icons {
-    font-size: 4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.65rem;
+    font-size: 1.45rem;
+    line-height: 1;
 
     a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      color: var(--global-text-color);
+
       i::before {
         color: var(--global-text-color);
         transition-property: all 0.2s ease-in-out;
@@ -396,6 +408,25 @@ ul.task-list input[type="checkbox"] {
           color: var(--global-theme-color);
         }
       }
+    }
+
+    .custom-social-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1em;
+      height: 1em;
+      color: var(--global-text-color);
+      font-size: 0.78em;
+      font-weight: 700;
+      border: 1.8px solid currentColor;
+      border-radius: 0.22em;
+      line-height: 1;
+      transition-property: all 0.2s ease-in-out;
+    }
+
+    a:hover .custom-social-icon {
+      color: var(--global-theme-color);
     }
   }
 
