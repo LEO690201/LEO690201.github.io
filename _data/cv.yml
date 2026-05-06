@@ -1,0 +1,82 @@
+- title: General Information
+  type: map
+  contents:
+    - name: Full Name
+      value: Guangli Hu
+    - name: Chinese Name
+      value: 胡广理
+    - name: Email
+      value: 3409961762@qq.com / hgl@mail.ustc.edu.cn
+    - name: Website
+      value: https://leo690201.github.io
+    - name: GitHub
+      value: https://github.com/LEO690201
+    - name: ORCID
+      value: https://orcid.org/0009-0001-7276-3416
+
+- title: Education
+  type: time_table
+  contents:
+    - title: B.S. student, Mathematics
+      institution: School of Mathematical Sciences, University of Science and Technology of China
+      year: 2024.9 - present
+      description:
+        - Current interests include 3D vision, computer graphics, geometry, and visual computing.
+    - title: High school student
+      institution: Harbin No. 3 High School, Nangang Campus
+      year: 2021.9 - 2024.6
+      description:
+        - Member of the Heilongjiang provincial mathematics team.
+
+- title: Experience
+  type: time_table
+  contents:
+    - title: Academic interests
+      institution: 3D Vision and Computer Graphics
+      year: 2024 - present
+      description:
+        - Closely connected with Prof. Juyong Zhang's research directions in geometry processing, graphics, and visual computing.
+
+- title: Open Source Projects
+  type: time_table
+  contents:
+    - title: <a href="https://github.com/LEO690201/LEO690201.github.io">LEO690201.github.io</a>
+      year: 2026-now
+      description: Personal academic homepage and preserved project pages.
+
+- title: Honors and Awards
+  type: time_table
+  contents:
+    - year: 2026.03
+      items:
+        - 29 / 1065, Tianchi Classic Ranking Competition, Track 2, Tmall Repeat Purchase Prediction.
+    - year: 2026.01
+      items:
+        - Outstanding Student Scholarship, University of Science and Technology of China.
+    - year: 2025.12
+      items:
+        - 15 / 326, Tianchi NLP Learning Competition, Model Generalization Challenge for Pretrained Models.
+        - 26 / 206, Tianchi Classic Ranking Competition, Track 4, Knowledge Graph Prediction.
+        - 51 / 582, Tianchi NLP Learning Competition, CT Hunter, Abnormality Detection in Medical Imaging Reports.
+    - year: 2025.10
+      items:
+        - Excellence Award in Physical Fitness Test, USTC Sports Committee.
+        - Men's 110m hurdles, 2nd place, undergraduate division, USTC Sports Committee.
+        - Men's triple jump, 3rd place, undergraduate division, USTC Sports Committee.
+        - 2025 Tianchi Geek Challenge, User Purchase Behavior Prediction.
+
+- title: Academic Interests
+  type: nested_list
+  contents:
+    - title: 3D Vision and Computer Graphics.
+      items:
+        - 3D reconstruction, geometry processing, visual computing, and graphics-related mathematical methods.
+    - title: Mathematics.
+      items:
+        - Undergraduate mathematics training with interests in geometry and computation.
+
+- title: Other Interests
+  type: list
+  contents:
+    - Track and field, especially hurdles and jumps.
+    - Basketball.
