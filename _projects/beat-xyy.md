@@ -3,7 +3,7 @@ layout: page
 title: Beat_XueYeYe
 description: A small browser game built for practice.
 importance: 3
-category: 自己练手的小玩具
+category: Casual Games and Practical Websites
 redirect: /beat_xyy/
 ---
 

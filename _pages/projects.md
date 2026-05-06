@@ -5,7 +5,7 @@ permalink: /projects/
 description: Side projects, prototypes, and small things built for practice.
 nav: true
 nav_order: 2
-display_categories: ["自己练手的小玩具"]
+display_categories: ["Casual Games and Practical Websites"]
 horizontal: false
 ---
 
