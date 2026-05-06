@@ -7,7 +7,7 @@ subtitle: Undergraduate student in mathematics at USTC. 3D vision, computer grap
 profile:
   align: right
   image: avatar.jpg
-  image_circular: false # crops the image to make it circular
+  image_circular: true # crops the image to make it circular
   more_info: >
     <p><strong>Guangli Hu</strong></p>
     <p>School of Mathematical Sciences, USTC</p>

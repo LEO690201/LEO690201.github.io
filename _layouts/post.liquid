@@ -64,7 +64,7 @@ layout: default
   <article class="post-content">
     {% if page.toc and page.toc.beginning %}
       <div id="table-of-contents">
-        {% toc %}
+        <p class="text-muted">Table of contents is disabled for the GitHub Pages compatibility build.</p>
       </div>
       <hr>
     {% endif %}
@@ -80,7 +80,7 @@ layout: default
   {% if page.related_publications %}
     <h2>References</h2>
     <div class="publications">
-      {% bibliography --cited_in_order %}
+      <p class="text-muted">References are managed manually on this site.</p>
     </div>
   {% endif %}
 
