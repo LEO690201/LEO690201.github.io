@@ -1,10 +1,10 @@
 ---
 layout: page
 title: Research Records
-description: Existing research record site preserved at /research/.
+description: A lightweight page for collecting research notes and useful materials.
 importance: 1
-category: work
+category: 自己练手的小玩具
 redirect: /research/
 ---
 
-This existing page is preserved at [research](/research/).
+Jump to [Research Records](/research/).

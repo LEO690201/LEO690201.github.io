@@ -2,10 +2,10 @@
 layout: page
 title: projects
 permalink: /projects/
-description: A growing collection of your cool projects.
+description: Side projects, prototypes, and small things built for practice.
 nav: true
 nav_order: 2
-display_categories: [work, fun]
+display_categories: ["自己练手的小玩具"]
 horizontal: false
 ---
 

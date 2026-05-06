@@ -1,10 +1,10 @@
 ---
 layout: page
 title: Beat_XueYeYe
-description: Existing game page preserved at /beat_xyy/.
+description: A small browser game built for practice.
 importance: 3
-category: fun
+category: 自己练手的小玩具
 redirect: /beat_xyy/
 ---
 
-This existing page is preserved at [Beat_XueYeYe](/beat_xyy/).
+Jump to [Beat_XueYeYe](/beat_xyy/).

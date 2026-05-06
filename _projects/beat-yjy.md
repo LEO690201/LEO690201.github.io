@@ -1,10 +1,10 @@
 ---
 layout: page
 title: Beat_YangJingYuan
-description: Existing game page preserved at /beat_yjy/.
+description: Another small browser game built for practice.
 importance: 4
-category: fun
+category: 自己练手的小玩具
 redirect: /beat_yjy/
 ---
 
-This existing page is preserved at [Beat_YangJingYuan](/beat_yjy/).
+Jump to [Beat_YangJingYuan](/beat_yjy/).

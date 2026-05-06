@@ -1,10 +1,10 @@
 ---
 layout: page
 title: Calendar
-description: Existing calendar and memory page preserved at /calendar/.
+description: A small calendar and memory page.
 importance: 2
-category: fun
+category: 自己练手的小玩具
 redirect: /calendar/
 ---
 
-This existing page is preserved at [calendar](/calendar/).
+Jump to [Calendar](/calendar/).
