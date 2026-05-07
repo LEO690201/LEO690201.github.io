@@ -1370,3 +1370,43 @@ ninja-keys::part(ninja-input-wrapper) {
   background-color: var(--global-theme-color);
   color: var(--global-text-color);
 }
+
+// News toggle
+.news-list-container {
+  transition: max-height 0.3s ease;
+  overflow-y: hidden;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--global-theme-color);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+}
+
+.news-toggle-wrapper {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.news-toggle-btn {
+  background: none;
+  border: 1px solid var(--global-theme-color);
+  color: var(--global-theme-color);
+  padding: 0.3rem 1.2rem;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: var(--global-theme-color);
+    color: var(--global-bg-color);
+  }
+}

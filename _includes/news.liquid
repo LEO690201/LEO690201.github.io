@@ -1,33 +1,70 @@
 <div class="news">
   {% if site.news != blank %}
     {% assign news_size = site.news | size %}
-    <div
-      class="table-responsive"
-      {% if include.limit and site.announcements.scrollable and news_size > 3 %}
-        style="max-height: 60vw"
-      {% endif %}
-    >
-      <table class="table table-sm table-borderless">
-        {% assign news = site.news | reverse %}
-        {% if include.limit and site.announcements.limit %}
-          {% assign news_limit = site.announcements.limit %}
-        {% else %}
-          {% assign news_limit = news_size %}
-        {% endif %}
-        {% for item in news limit: news_limit %}
-          <tr>
-            <th scope="row" style="width: 20%">{{ item.date | date: '%b %d, %Y' }}</th>
-            <td>
-              {% if item.inline %}
-                {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
-              {% else %}
-                <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </table>
-    </div>
+    {% assign news = site.news | reverse %}
+
+    {% if include.limit and news_size > 3 %}
+      <!-- 首页：折叠 + 可滚动 -->
+      <div id="news-container" class="news-list-container" style="max-height: 9em; overflow-y: hidden;">
+        <div class="table-responsive">
+          <table class="table table-sm table-borderless">
+            {% for item in news %}
+              <tr>
+                <th scope="row" style="width: 20%">{{ item.date | date: '%b %d, %Y' }}</th>
+                <td>
+                  {% if item.inline %}
+                    {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
+                  {% else %}
+                    <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+
+      <div class="news-toggle-wrapper">
+        <button class="news-toggle-btn" id="news-toggle-btn" onclick="toggleNews()">
+          Show all {{ news_size }} news ▾
+        </button>
+      </div>
+
+      <script>
+        function toggleNews() {
+          var container = document.getElementById('news-container');
+          var btn = document.getElementById('news-toggle-btn');
+          var isCollapsed = (container.style.maxHeight === '9em' || container.style.maxHeight === '');
+          if (isCollapsed) {
+            container.style.maxHeight = '60vw';
+            container.style.overflowY = 'auto';
+            btn.innerHTML = 'Collapse ▴';
+          } else {
+            container.style.maxHeight = '9em';
+            container.style.overflowY = 'hidden';
+            btn.innerHTML = 'Show all {{ news_size }} news ▾';
+          }
+        }
+      </script>
+    {% else %}
+      <!-- news 页面 / 少量条目：全量直接显示 -->
+      <div class="table-responsive">
+        <table class="table table-sm table-borderless">
+          {% for item in news %}
+            <tr>
+              <th scope="row" style="width: 20%">{{ item.date | date: '%b %d, %Y' }}</th>
+              <td>
+                {% if item.inline %}
+                  {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
+                {% else %}
+                  <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
   {% else %}
     <p>No news so far...</p>
   {% endif %}
