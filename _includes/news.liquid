@@ -1,32 +1,44 @@
 <div class="news">
   {% if site.news != blank %}
     {% assign news_size = site.news | size %}
+    <style>
+      .news-scroll { }
+      .news-item { border-bottom: 1px solid rgba(0,0,0,0.06); padding: 0.8rem 0; }
+      .news-item summary { list-style: none; cursor: pointer; display: flex; gap: 0.75rem; align-items: center; }
+      .news-item summary::-webkit-details-marker { display: none; }
+      .news-item .news-date { color: #6c757d; font-size: 0.9rem; min-width: 10ch; }
+      .news-item .news-title { font-weight: 600; color: inherit; text-decoration: none; }
+      .news-content { margin-top: 0.5rem; }
+    </style>
+
     <div
-      class="table-responsive"
+      class="news-scroll"
       {% if include.limit and site.announcements.scrollable and news_size > 3 %}
-        style="max-height: 60vw"
+        style="max-height: 60vh; overflow-y: auto;"
       {% endif %}
     >
-      <table class="table table-sm table-borderless">
-        {% assign news = site.news | reverse %}
-        {% if include.limit and site.announcements.limit %}
-          {% assign news_limit = site.announcements.limit %}
-        {% else %}
-          {% assign news_limit = news_size %}
-        {% endif %}
-        {% for item in news limit: news_limit %}
-          <tr>
-            <th scope="row" style="width: 20%">{{ item.date | date: '%b %d, %Y' }}</th>
-            <td>
-              {% if item.inline %}
-                {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
-              {% else %}
-                <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </table>
+      {% assign news = site.news | reverse %}
+      {% if include.limit and site.announcements.limit %}
+        {% assign news_limit = site.announcements.limit %}
+      {% else %}
+        {% assign news_limit = news_size %}
+      {% endif %}
+
+      {% for item in news limit: news_limit %}
+        <details class="news-item" open>
+          <summary>
+            <time class="news-date">{{ item.date | date: '%b %d, %Y' }}</time>
+            {% if item.inline %}
+              <span class="news-title">{{ item.title }}</span>
+            {% else %}
+              <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+            {% endif %}
+          </summary>
+          <div class="news-content">
+            {{ item.content | emojify }}
+          </div>
+        </details>
+      {% endfor %}
     </div>
   {% else %}
     <p>No news so far...</p>
