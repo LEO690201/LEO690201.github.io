@@ -50,6 +50,9 @@
 - title: Honors and Awards
   type: time_table
   contents:
+    - year: 2026.05
+      items:
+        - Honorable Mention (H Prize), 2026 Mathematical Contest in Modeling (MCM), USA.
     - year: 2026.03
       items:
         - 29 / 1065, Tianchi Classic Ranking Competition, Track 2, Tmall Repeat Purchase Prediction.
