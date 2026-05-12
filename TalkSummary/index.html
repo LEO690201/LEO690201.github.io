@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalkSummary</title>
+  <meta name="description" content="TalkSummary: Less Time, Same Meaning for Talking Video Summarization.">
+  <meta name="citation_title" content="TalkSummary: Less Time, Same Meaning for Talking Video Summarization">
+  <meta name="citation_author" content="Hu, Guangli">
+  <meta name="citation_author" content="Xiao, Yayun">
+  <meta name="citation_author" content="Guo, Yudong">
+  <meta name="citation_author" content="Zhang, Juyong">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <section class="hero-section">
+      <div class="container narrow">
+        <p class="venue">SIGGRAPH Asia Submission</p>
+        <h1>TalkSummary: Less Time, Same Meaning for Talking Video Summarization</h1>
+
+        <div class="authors" aria-label="Authors">
+          <a href="https://leo690201.github.io" target="_blank" rel="noopener noreferrer">Guangli Hu<sup>*</sup></a>
+          <span>Yayun Xiao<sup>*</sup></span>
+          <span>Yudong Guo</span>
+          <span>Juyong Zhang<sup>&dagger;</sup></span>
+        </div>
+        <p class="affiliation">University of Science and Technology of China</p>
+        <p class="notes"><sup>*</sup> Equal contribution. <sup>&dagger;</sup> Corresponding author.</p>
+
+        <div class="link-buttons" aria-label="Project links">
+          <span class="project-button disabled">Paper Coming Soon</span>
+          <span class="project-button disabled">Code Coming Soon</span>
+          <a class="project-button" href="#videos">Video</a>
+          <a class="project-button" href="#bibtex">BibTeX</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="teaser-section">
+      <div class="container">
+        <figure class="paper-figure teaser">
+          <img src="assets/figures/teaser.png" alt="TalkSummary teaser overview">
+          <figcaption>
+            TalkSummary condenses long-form talking-head videos by preserving semantic anchors, multimodal affective trajectories, and digital-human performance continuity.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="videos" class="section">
+      <div class="container">
+        <h2>Demo Video and Comparisons</h2>
+        <p class="section-lead">
+          Demo and comparison videos are under preparation. The slots below are reserved for the main result video and related visual comparisons.
+        </p>
+        <div class="video-grid">
+          <article class="video-slot main-video">
+            <div class="video-box">
+              <span class="play-icon" aria-hidden="true"></span>
+              <div>
+                <h3>Main demo video</h3>
+                <p>Coming soon</p>
+              </div>
+            </div>
+          </article>
+          <article class="video-slot">
+            <div class="video-box">
+              <span class="play-icon" aria-hidden="true"></span>
+              <div>
+                <h3>Baseline comparison</h3>
+                <p>Coming soon</p>
+              </div>
+            </div>
+          </article>
+          <article class="video-slot">
+            <div class="video-box">
+              <span class="play-icon" aria-hidden="true"></span>
+              <div>
+                <h3>Ablation study</h3>
+                <p>Coming soon</p>
+              </div>
+            </div>
+          </article>
+          <article class="video-slot">
+            <div class="video-box">
+              <span class="play-icon" aria-hidden="true"></span>
+              <div>
+                <h3>Digital human rendering</h3>
+                <p>Coming soon</p>
+              </div>
+            </div>
+          </article>
+          <article class="video-slot">
+            <div class="video-box">
+              <span class="play-icon" aria-hidden="true"></span>
+              <div>
+                <h3>Emotion trajectory</h3>
+                <p>Coming soon</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="abstract" class="section white-section">
+      <div class="container narrow">
+        <h2>Abstract</h2>
+        <p>
+          Long-form talking-head footage, including lectures, keynotes, interviews, and instructional content, carries dense knowledge, presentation rhythm, and affective trajectories expressed through speech prosody, facial dynamics, and body motion, yet is increasingly consumed in short-form formats.
+        </p>
+        <p>
+          We define long-form talking-head condensation as reducing duration while preserving linguistic content, affective trajectory, and on-camera performance continuity, so the source video's information and affective expression can be conveyed in less time. Existing text summarization and jump-cut summarization methods address only one side of this problem, while recent talking-head and digital-human synthesis methods do not directly solve interval selection, affect propagation, or cross-segment continuity.
+        </p>
+        <p>
+          We present TalkSummary, a multimodal condensation-and-re-synthesis framework that renders long-form speech into a shorter, performance-preserving talking-head video under a user-specified compression ratio. TalkSummary segments the source by multimodal affective divergence, allocates compression budget with keyword priors and segment-level importance, predicts compressed transcripts and animation-ready Affective Control Packages, and drives voice, body motion, and lip synchronization with temporal smoothing.
+        </p>
+      </div>
+    </section>
+
+    <section id="method" class="section">
+      <div class="container">
+        <h2>Method</h2>
+        <figure class="paper-figure">
+          <img src="assets/figures/pipeline.png" alt="TalkSummary framework pipeline">
+          <figcaption>
+            Overview of the TalkSummary framework: upstream multimodal affective divergence clustering and dual-head omnimodal compression are connected to downstream emotion-conditioned motion generation and high-fidelity lip synchronization.
+          </figcaption>
+        </figure>
+
+        <div class="method-cards">
+          <article>
+            <h3>Multimodal affective distillation</h3>
+            <p>Text, audio, and visual channels are aligned to estimate semantic importance and affective dynamics across sentence-level segments.</p>
+          </article>
+          <article>
+            <h3>Budget-aware condensation</h3>
+            <p>Dynamic programming allocates the target compression budget while retaining keyword priors and high-importance affective anchors.</p>
+          </article>
+          <article>
+            <h3>Digital human re-synthesis</h3>
+            <p>ACP signals guide voice cloning, emotion-conditioned body motion, lip synchronization, and boundary smoothing for continuous output video.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="figures" class="section white-section">
+      <div class="container">
+        <h2>Paper Figures</h2>
+        <div class="figure-grid">
+          <figure class="paper-figure">
+            <img src="assets/figures/acp-continue.png" alt="Affective control package and temporal blending">
+            <figcaption>Structured affective control and cross-segment temporal blending.</figcaption>
+          </figure>
+          <figure class="paper-figure">
+            <img src="assets/figures/tango.png" alt="Emotion-conditioned motion graph search">
+            <figcaption>Emotion-conditioned motion graph search for expressive gesture synthesis.</figcaption>
+          </figure>
+          <figure class="paper-figure wide">
+            <img src="assets/figures/five-panel-overview.png" alt="Affective trajectory preservation comparison">
+            <figcaption>Affective trajectory preservation across full method, global compression, no smoothing, and model ablations.</figcaption>
+          </figure>
+          <figure class="paper-figure">
+            <img src="assets/figures/downstream-rendering-grid.png" alt="Downstream digital human rendering grid">
+            <figcaption>Downstream digital-human rendering reference and qualitative layout.</figcaption>
+          </figure>
+          <figure class="paper-figure">
+            <img src="assets/figures/omni.png" alt="Omnimodal model design">
+            <figcaption>Omnimodal student model design for semantic and affective control prediction.</figcaption>
+          </figure>
+          <figure class="paper-figure">
+            <img src="assets/figures/omni2.png" alt="Dual-head omnimodal output structure">
+            <figcaption>Dual-head output structure for compressed transcript and continuous affective controls.</figcaption>
+          </figure>
+          <figure class="paper-figure">
+            <img src="assets/figures/keyword-retention-fit.png" alt="Keyword retention fit">
+            <figcaption>Keyword-retention behavior across compression settings.</figcaption>
+          </figure>
+          <figure class="paper-figure">
+            <img src="assets/figures/ui.png" alt="TalkSummary interface illustration">
+            <figcaption>Interface and result visualization prepared for the project.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="resources" class="section">
+      <div class="container narrow">
+        <h2>Resources</h2>
+        <div class="resource-list">
+          <div>
+            <h3>Paper</h3>
+            <p>Coming soon</p>
+          </div>
+          <div>
+            <h3>Code</h3>
+            <p>Coming soon</p>
+          </div>
+          <div id="bibtex">
+            <h3>Citation</h3>
+            <pre><code>Coming soon</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>This website follows the structure of a standard academic project page. Project materials will be released after the submission is ready.</p>
+  </footer>
+</body>
+</html>
